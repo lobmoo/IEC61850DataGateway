@@ -1,1 +1,0 @@
-g++ CMakeFiles/test_exec.dir/app_net_interface.cc.o CMakeFiles/test_exec.dir/main.cc.o -o ../test_exec  ../thirdparty/boost/lib/libboost_system.a ../thirdparty/boost/lib/libboost_thread.a ../thirdparty/boost/lib/libboost_filesystem.a ../thirdparty/yaml-cpp/lib/libyaml-cpp.a ../common/log/lib/liblog.a -lpthread -lrt

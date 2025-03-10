@@ -1,7 +1,0 @@
-/home/wwk/workspaces/test_demo/common/log/CMakeFiles/log.dir
-/home/wwk/workspaces/test_demo/common/log/CMakeFiles/edit_cache.dir
-/home/wwk/workspaces/test_demo/common/log/CMakeFiles/rebuild_cache.dir
-/home/wwk/workspaces/test_demo/common/log/CMakeFiles/list_install_components.dir
-/home/wwk/workspaces/test_demo/common/log/CMakeFiles/install.dir
-/home/wwk/workspaces/test_demo/common/log/CMakeFiles/install/local.dir
-/home/wwk/workspaces/test_demo/common/log/CMakeFiles/install/strip.dir
