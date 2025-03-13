@@ -28,8 +28,6 @@ set(OBJ_CPP_INCLUDE
 list(APPEND OBJ_CPP_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/../../thirdparty/fast_dds/include)
 target_include_directories(${PROJECT_NAME} PRIVATE  ${OBJ_CPP_INCLUDE})
 
-#设置库路径
-set(OBJ_CPP_LIBRARY_PATH  ${CMAKE_CURRENT_SOURCE_DIR}/../../thirdparty/fast_dds/lib)
 
 # 查找每个库
 find_library(FASTRTPS_LIBRARY NAMES fastdds PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../../thirdparty/fast_dds/lib)
