@@ -31,17 +31,12 @@ target_include_directories(goose_sub_exec PRIVATE  ${OBJ_CPP_INCLUDE})
 set(OBJ_CPP_LIBRARY_PATH  ${CMAKE_CURRENT_SOURCE_DIR}/../../thirdparty/iec61850/lib)
 
 
-# link_directories(${LIBRARY_PATH})
-target_link_libraries(goose_pub_exec PRIVATE ${OBJ_CPP_LIBS} pthread  rt ${CMAKE_SOURCE_DIR}/../../thirdparty/iec61850/lib/libiec61850.a
-${CMAKE_SOURCE_DIR}/../../thirdparty/iec61850/lib/libhal.a
-${CMAKE_SOURCE_DIR}/../../thirdparty/iec61850/lib/libhal-shared.a)
-
     
 target_link_libraries(goose_pub_exec PRIVATE
     ${OBJ_CPP_LIBS}
-    ${CMAKE_SOURCE_DIR}/../../thirdparty/iec61850/lib/libiec61850.a
-    ${CMAKE_SOURCE_DIR}/../../thirdparty/iec61850/lib/libhal.a
-    ${CMAKE_SOURCE_DIR}/../../thirdparty/iec61850/lib/libhal-shared.a
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../thirdparty/iec61850/lib/libiec61850.a
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../thirdparty/iec61850/lib/libhal.a
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../thirdparty/iec61850/lib/libhal-shared.a
     pthread
     rt
 )
@@ -49,9 +44,9 @@ target_link_libraries(goose_pub_exec PRIVATE
 
 target_link_libraries(goose_sub_exec PRIVATE 
     ${OBJ_CPP_LIBS}
-    ${CMAKE_SOURCE_DIR}/../../thirdparty/iec61850/lib/libiec61850.a
-    ${CMAKE_SOURCE_DIR}/../../thirdparty/iec61850/lib/libhal.a
-    ${CMAKE_SOURCE_DIR}/../../thirdparty/iec61850/lib/libhal-shared.a
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../thirdparty/iec61850/lib/libiec61850.a
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../thirdparty/iec61850/lib/libhal.a
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../thirdparty/iec61850/lib/libhal-shared.a
     pthread
     rt
 )
