@@ -13,6 +13,7 @@
 #include "hal_thread.h"
 
 /* has to be executed as root! */
+/*同一个主机应该使用lo而不是网卡*/
 int
 main(int argc, char **argv)
 {
@@ -58,7 +59,7 @@ main(int argc, char **argv)
     GoosePublisher publisher = GoosePublisher_create(&gooseCommParameters, interface);
 
     if (publisher) {
-        GoosePublisher_setGoCbRef(publisher, "simpleIOGenericIO/LLN0$GO$gcbAnalogValues");
+        GoosePublisher_setGoCbRef(publisher, "simpleIOGenericIO/LLN0$GO$gcbAnalogValues");//simpleIOGenericIO/LLN0$GO$gcbAnalogValues
         GoosePublisher_setConfRev(publisher, 1);
         GoosePublisher_setDataSetRef(publisher, "simpleIOGenericIO/LLN0$AnalogValues");
         GoosePublisher_setTimeAllowedToLive(publisher, 500);
