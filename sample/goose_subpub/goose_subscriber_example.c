@@ -55,7 +55,7 @@ main(int argc, char** argv)
         GooseReceiver_setInterfaceId(receiver, argv[1]);
     }
     else {
-        printf("Using interface eth0\n");
+        printf("Using interface eth1\n");
         GooseReceiver_setInterfaceId(receiver, "eth1");
     }
 
