@@ -34,19 +34,9 @@ main(int argc, char **argv)
 
     CommParameters gooseCommParameters;
 
-    // gooseCommParameters.appId = 1000;
-    // uint8_t dstMac[6] = {0x01,0x0c,0xcd,0x01,0x00,0x01};
-    // memcpy(gooseCommParameters.dstAddress, dstMac, sizeof(dstMac));
-
     gooseCommParameters.appId = 1000;
-    gooseCommParameters.dstAddress[0] = 0x01;
-    gooseCommParameters.dstAddress[1] = 0x0c;
-    gooseCommParameters.dstAddress[2] = 0xcd;
-    gooseCommParameters.dstAddress[3] = 0x01;
-    gooseCommParameters.dstAddress[4] = 0x00;
-    gooseCommParameters.dstAddress[5] = 0x01;
-    gooseCommParameters.vlanId = 0;
-    gooseCommParameters.vlanPriority = 4;
+    uint8_t dstMac[6] = {0x01,0x0c,0xcd,0x01,0x00,0x01};
+    memcpy(gooseCommParameters.dstAddress, dstMac, sizeof(dstMac));
     gooseCommParameters.vlanId = 0;
     gooseCommParameters.vlanPriority = 4;
 
