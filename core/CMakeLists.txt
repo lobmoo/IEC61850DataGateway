@@ -35,6 +35,8 @@ set(OBJ_CPP_INCLUDE
     ${CMAKE_SOURCE_DIR}/thirdparty/boost/include
     ${CMAKE_SOURCE_DIR}/thirdparty/nlohmann/include
     ${CMAKE_SOURCE_DIR}/thirdparty/yaml-cpp/include
+    ${CMAKE_SOURCE_DIR}/thirdparty/modbus/include
+
 )
 
 
@@ -72,6 +74,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/thirdparty/boost/lib/libboost_filesystem.a
     ${CMAKE_SOURCE_DIR}/thirdparty/yaml-cpp/lib/libyaml-cpp.a
     ${CMAKE_SOURCE_DIR}/common/log/lib/liblog.a
+    ${CMAKE_SOURCE_DIR}/thirdparty/modbus/lib/libmodbus.a
     pthread 
     rt
 )
