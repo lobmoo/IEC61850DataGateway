@@ -6,31 +6,50 @@
 #include <mutex>
 #include <string>
 
-/*≈‰÷√Ω·ππ*/
-
 struct ConfigDataModbus {
-  std::string server_ip = "127.0.0.1";  
-  int timeout = 30;                     
+    struct TCP {
+        std::string ip;
+        int port;
+    };
+    struct RTU {
+        std::string port_name;
+        int baudrate;
+        std::string parity;
+        int slave_addr;
+    };
+
+    TCP tcp;
+    RTU rtu;
+    int cmd_interval;
+    int max_retries;
+    int retry_interval;
 };
 
-
-class Config {
- public:
- ~Config();  
-
-  static Config& getInstance();
-
-  void loadConfig(const std::string& filename);
-
-  const ConfigData* getConfig();
-
- private:
-  Config();                                   
-  Config(const Config&) = delete;             
-  Config& operator=(const Config&) = delete;  
-
-  std::unique_ptr<ConfigData> data = nullptr;    
-  std::mutex mutex_;  
+struct ConfigData {
+    ConfigDataModbus modbus;
 };
 
-#endif  // CONFIG_H
+class Config
+{
+public:
+    ~Config();
+
+    static Config &getInstance();
+
+    void loadConfig(const std::string &filename);
+
+    const ConfigData *getConfig();
+
+private:
+    Config();
+    Config(const Config &) = delete;
+    Config &operator=(const Config &) = delete;
+
+    std::unique_ptr<ConfigData> data = nullptr;
+    std::mutex mutex_;
+
+private:
+    void parseModbusConfig(const YAML::Node &config, std::unique_ptr<ConfigData> &data);
+};
+
+#endif // CONFIG_H

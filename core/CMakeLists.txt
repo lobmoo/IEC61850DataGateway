@@ -36,6 +36,8 @@ set(OBJ_CPP_INCLUDE
     ${CMAKE_SOURCE_DIR}/thirdparty/nlohmann/include
     ${CMAKE_SOURCE_DIR}/thirdparty/modbus/include
     ${CMAKE_SOURCE_DIR}/thirdparty/yaml-cpp/include
+    ${CMAKE_SOURCE_DIR}/core/
+
 )
 
 
@@ -44,15 +46,19 @@ set(OBJ_CPP_INCLUDE
 #     "${CMAKE_CURRENT_SOURCE_DIR}/net_interface.cc"
 # )
 
-
+file(GLOB SOURCES_CC_FOR_CPOMMON "${CMAKE_CURRENT_SOURCE_DIR}/../common/config/*.cc")
 file(GLOB SOURCES_CC_FOR_MAIN "${CMAKE_CURRENT_SOURCE_DIR}/*.cc")
+file(GLOB SOURCES_CC_FOR_MODBUS "${CMAKE_CURRENT_SOURCE_DIR}/modbus/*.cc")
+
 
 message(STATUS "Collected CPP sources: ${SOURCES_CC_FOR_MAIN}")
 message(STATUS "CMAKE_INSTALL_PREFIX: ${CMAKE_INSTALL_PREFIX}")
 message(STATUS "OBJ_CPP_INCLUDE: ${OBJ_CPP_INCLUDE}")
 
 # 合并所有查找到的文件列表
-set(MAIN_SOURCES ${SOURCES_CC_FOR_MAIN})
+set(MAIN_SOURCES ${SOURCES_CC_FOR_MAIN}
+${SOURCES_CC_FOR_CPOMMON} 
+${SOURCES_CC_FOR_MODBUS})
 
 
 option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
