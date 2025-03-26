@@ -8,7 +8,7 @@
 
 /*≈‰÷√Ω·ππ*/
 
-struct ConfigData {
+struct ConfigDataModbus {
   std::string server_ip = "127.0.0.1";  
   int timeout = 30;                     
 };

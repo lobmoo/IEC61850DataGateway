@@ -31,18 +31,18 @@ private:
     void applyCommandInterval();
     void reconnect();
 
-    int slaveAddr;
-    ModbusType type;
-    int channel;
-    int cmdInterval;
-    std::string portName;
-    int baudrate;
-    Parity parity;
-    std::string ip;
-    int port;
-    modbus_t* ctx;
-    int maxRetries;         // 最大重试次数
-    int retryInterval;      // 重试间隔（毫秒）
+    int slaveAddr_;
+    ModbusType type_;
+    int channel_;
+    int cmdInterval_;
+    std::string portName_;
+    int baudrate_;
+    Parity parity_;
+    std::string ip_;
+    int port_;
+    modbus_t* ctx_;
+    int maxRetries_;         // 最大重试次数
+    int retryInterval_;      // 重试间隔（毫秒）
 };
 
 #endif // APP_MODBUS_H
