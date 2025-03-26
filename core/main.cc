@@ -10,16 +10,19 @@
 int main() {
   Logger::Instance().setFlushOnLevel(Logger::info);
   Logger::Instance().Init("log/myapp.log", Logger::both, Logger::trace, 60, 5);
-  AppModbus::ModbusType type = AppModbus::ModbusType::TCP;
-  AppModbus modbus(1, type, 0, 100, "", 0, AppModbus::Parity::NONE, "192.168.1.100", 502);
+  AppModbus modbus(1, ModbusType::TCP, 0, 100, "", 0, Parity::NONE, "127.0.0.1", 1502, 5, 2000);
+  uint16_t registers[5];
+  while(1)
+  {
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+   
+    modbus.readRegisters(0, 5, registers);
 
-  uint16_t regs[10];
-  modbus.readRegisters(0, 10, regs);
-  std::cout << "Read registers: ";
-  for (auto reg : regs) {
-      std::cout << reg << " ";
+    for (int i = 0; i < 5; ++i) {
+      std::cout << "Register " << i << ": " << registers[i] << std::endl;
+    }
+    std::this_thread::sleep_for(std::chrono::seconds(1));
   }
-  std::cout << std::endl;
-
+ 
   return 0;
 }
