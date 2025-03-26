@@ -1,4 +1,5 @@
 ConfigModbus:
+  type: "TCP"                 # Modbus 类型（TCP/RTU）
   TCP:
     ip: "127.0.0.1"          # Modbus TCP IP 地址
     port: 502                 # Modbus TCP 端口号
