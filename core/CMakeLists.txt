@@ -34,10 +34,10 @@ set(OBJ_CPP_INCLUDE
     ${CMAKE_SOURCE_DIR}/thirdparty/BS_thread_pool/include
     ${CMAKE_SOURCE_DIR}/thirdparty/boost/include
     ${CMAKE_SOURCE_DIR}/thirdparty/nlohmann/include
-    ${CMAKE_SOURCE_DIR}/thirdparty/yaml-cpp/include
     ${CMAKE_SOURCE_DIR}/thirdparty/modbus/include
-
+    ${CMAKE_SOURCE_DIR}/thirdparty/yaml-cpp/include
 )
+
 
 
 # set(SOURCES_CC_FOR_NET_WORK
@@ -49,6 +49,7 @@ file(GLOB SOURCES_CC_FOR_MAIN "${CMAKE_CURRENT_SOURCE_DIR}/*.cc")
 
 message(STATUS "Collected CPP sources: ${SOURCES_CC_FOR_MAIN}")
 message(STATUS "CMAKE_INSTALL_PREFIX: ${CMAKE_INSTALL_PREFIX}")
+message(STATUS "OBJ_CPP_INCLUDE: ${OBJ_CPP_INCLUDE}")
 
 # 合并所有查找到的文件列表
 set(MAIN_SOURCES ${SOURCES_CC_FOR_MAIN})
