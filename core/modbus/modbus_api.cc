@@ -15,7 +15,7 @@ ModbusApi::ModbusApi(
       portName_(portName), baudrate_(baudrate), parity_(parity), ip_(ip), port_(port),
       ctx_(nullptr), maxRetries_(maxRetries), retryInterval_(retryInterval)
 {
-    reconnect();
+    
 }
 
 ModbusApi::~ModbusApi()

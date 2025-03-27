@@ -63,6 +63,7 @@ void AppModbus::run()
         }
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
+    LOG(info) << "AppModbus::stop";
 }
 
 void AppModbus::stop()

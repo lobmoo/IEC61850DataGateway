@@ -13,14 +13,12 @@ int main()
     Logger::Instance().Init("log/myapp.log", Logger::both, Logger::trace, 60, 5);
     AppModbus modbus("config/config.yaml");
     modbus.init();
-    modbus.run();
-    
-    while (getchar() != 'q')
-    {
-        std::this_thread::sleep_for(std::chrono::seconds(1));
+    std::thread t1([&modbus]() {
+            modbus.run();
+        });
+    t1.detach();
+    while (std::cin.get() != '\n') {
     }
-    modbus.stop();
-    
-    
+    modbus.stop(); 
     return 0;
 }

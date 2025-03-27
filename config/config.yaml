@@ -9,5 +9,7 @@ ConfigModbus:
     parity: "N"               # 校验位（无校验：N，偶校验：E，奇校验：O）
     slave_addr: 1             # 从站地址
   cmd_interval: 100           # 命令发送间隔（毫秒）
-  max_retries: 3              # 最大重试次数
-  retry_interval: 500         # 重试间隔（毫秒）
+  max_retries: 20000000              # 最大重试次数
+  retry_interval: 3000         # 重试间隔（毫秒）
+
+
