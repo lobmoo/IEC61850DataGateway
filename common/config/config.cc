@@ -65,4 +65,7 @@ void Config::parseModbusConfig(const YAML::Node &config, std::unique_ptr<ConfigD
 
     if (config["ConfigModbus"]["retry_interval"])
         data->modbus.retry_interval = config["ConfigModbus"]["retry_interval"].as<int>();
+    
+    if(config["ConfigModbus"]["type"])
+        data->modbus.Type = config["ConfigModbus"]["type"].as<std::string>();
 }

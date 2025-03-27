@@ -22,11 +22,20 @@ bool AppModbus::init()
     Config::getInstance().loadConfig(configPath_);
     const ConfigData *config = Config::getInstance().getConfig();
 
-
+    ModbusType type = ModbusType::TCP;
+    if(config->modbus.Type == "TCP")
+    {
+        type = ModbusType::TCP;
+    }
+    else if (config->modbus.Type == "RTU")
+    {
+        type = ModbusType::RTU;
+    }
+    config->modbus.to_string();
     modbusApi_ = std::make_shared<ModbusApi>(
-        config->modbus.rtu.slave_addr, ModbusType::RTU, 0, config->modbus.cmd_interval,
+        config->modbus.rtu.slave_addr, type, 0, config->modbus.cmd_interval,
         config->modbus.rtu.port_name, config->modbus.rtu.baudrate,
-        config->modbus.rtu.parity == "NONE" ? Parity::NONE : Parity::ODD, "", 0,
+        config->modbus.rtu.parity == "NONE" ? Parity::NONE : Parity::ODD, config->modbus.tcp.ip, config->modbus.tcp.port,
         config->modbus.max_retries, config->modbus.retry_interval);
 
     return true;

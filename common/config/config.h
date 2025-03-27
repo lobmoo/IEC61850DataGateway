@@ -5,6 +5,7 @@
 
 #include <mutex>
 #include <string>
+#include <log/logger.h>
 
 struct ConfigDataModbus {
     struct TCP {
@@ -18,11 +19,28 @@ struct ConfigDataModbus {
         int slave_addr;
     };
 
+    std::string Type;
     TCP tcp;
     RTU rtu;
     int cmd_interval;
     int max_retries;
     int retry_interval;
+
+    inline void to_string() const
+    {
+        LOG(info) << "Type: " << Type;
+        LOG(info) << "cmd_interval: " << cmd_interval;
+        LOG(info) << "max_retries: " << max_retries;
+        LOG(info) << "retry_interval: " << retry_interval;
+        LOG(info) << "TCP: ";
+        LOG(info) << "ip: " << tcp.ip;
+        LOG(info) << "port: " << tcp.port;
+        LOG(info) << "RTU: ";
+        LOG(info) << "port_name: " << rtu.port_name;
+        LOG(info) << "baudrate: " << rtu.baudrate;
+        LOG(info) << "parity: " << rtu.parity;
+        LOG(info) << "slave_addr: " << rtu.slave_addr;
+    }
 };
 
 struct ConfigData {
