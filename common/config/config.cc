@@ -16,8 +16,7 @@ Config &Config::getInstance()
     return instance;
 }
 
-
-bool Config::init(const std::string &BasePath) 
+bool Config::init(const std::string &BasePath)
 {
     std::vector<std::string> configPaths = getDeviceConfigPaths(BasePath);
     for (const auto &configPath : configPaths) {
@@ -36,8 +35,9 @@ void Config::loadConfig(const std::string &filename)
         data = std::make_unique<ConfigData>();
     }
     /*添加相关的解析函数*/
-    parseModbusConfig(config, data);
-
+    if (!parseModbusConfig(config, data)) {
+        LOG(error) << "Failed to parse Modbus config";
+    }
 }
 
 const ConfigData *Config::getConfig()
@@ -45,60 +45,118 @@ const ConfigData *Config::getConfig()
     return data.get();
 }
 
-void Config::parseModbusConfig(const YAML::Node &config, std::unique_ptr<ConfigData> &data)
+
+bool Config::parseModbusConfig(const YAML::Node &config, std::unique_ptr<ConfigData> &data)
 {
+ 
     ConfigDataModbus modbus;
-    if (config["ConfigModbus"]["TCP"]["ip"])
-        modbus.tcp.ip = config["ConfigModbus"]["TCP"]["ip"].as<std::string>();
 
-    if (config["ConfigModbus"]["TCP"]["port"])
-        modbus.tcp.port = config["ConfigModbus"]["TCP"]["port"].as<int>();
+   
+    const YAML::Node &modbusConfig = config["ConfigModbus"];
+    if (!modbusConfig) {
+        return false; 
+    }
 
-    if (config["ConfigModbus"]["RTU"]["port_name"])
-        modbus.rtu.port_name = config["ConfigModbus"]["RTU"]["port_name"].as<std::string>();
+    // 解析 TCP 配置
+    const YAML::Node &tcpConfig = modbusConfig["TCP"];
+    if (tcpConfig) {
+        if (!tcpConfig["ip"]) {
+            return false; 
+        }
+        modbus.tcp.ip = tcpConfig["ip"].as<std::string>();
 
-    if (config["ConfigModbus"]["RTU"]["baudrate"])
-        modbus.rtu.baudrate = config["ConfigModbus"]["RTU"]["baudrate"].as<int>();
+        if (!tcpConfig["port"]) {
+            return false; // 端口缺失
+        }
+        modbus.tcp.port = tcpConfig["port"].as<int>();
+    } else {
+        return false; // 如果 TCP 节点不存在，直接返回 false
+    }
 
-    if (config["ConfigModbus"]["RTU"]["parity"])
-        modbus.rtu.parity = config["ConfigModbus"]["RTU"]["parity"].as<std::string>();
+    // 解析 RTU 配置
+    const YAML::Node &rtuConfig = modbusConfig["RTU"];
+    if (rtuConfig) {
+        if (!rtuConfig["port_name"]) {
+            return false; // 串口名称缺失
+        }
+        modbus.rtu.port_name = rtuConfig["port_name"].as<std::string>();
 
-    if (config["ConfigModbus"]["RTU"]["slave_addr"])
-        modbus.rtu.slave_addr = config["ConfigModbus"]["RTU"]["slave_addr"].as<int>();
+        if (!rtuConfig["baudrate"]) {
+            return false; // 波特率缺失
+        }
+        modbus.rtu.baudrate = rtuConfig["baudrate"].as<int>();
 
-    if (config["ConfigModbus"]["cmd_interval"])
-        modbus.cmd_interval = config["ConfigModbus"]["cmd_interval"].as<int>();
+        if (!rtuConfig["parity"]) {
+            return false; // 校验方式缺失
+        }
+        modbus.rtu.parity = rtuConfig["parity"].as<std::string>();
 
-    if (config["ConfigModbus"]["max_retries"])
-        modbus.max_retries = config["ConfigModbus"]["max_retries"].as<int>();
+        if (!rtuConfig["slave_addr"]) {
+            return false; // 从站地址缺失
+        }
+        modbus.rtu.slave_addr = rtuConfig["slave_addr"].as<int>();
+    } else {
+        return false; // 如果 RTU 节点不存在，直接返回 false
+    }
 
-    if (config["ConfigModbus"]["retry_interval"])
-        modbus.retry_interval = config["ConfigModbus"]["retry_interval"].as<int>();
+    // 其他通用配置
+    if (!modbusConfig["cmd_interval"]) {
+        return false; // 命令间隔缺失
+    }
+    modbus.cmd_interval = modbusConfig["cmd_interval"].as<int>();
 
-    if (config["ConfigModbus"]["retry_interval"])
-        modbus.retry_interval = config["ConfigModbus"]["retry_interval"].as<int>();
+    if (!modbusConfig["max_retries"]) {
+        return false; // 最大重试次数缺失
+    }
+    modbus.max_retries = modbusConfig["max_retries"].as<int>();
 
-    if (config["ConfigModbus"]["type"])
-        modbus.Type = config["ConfigModbus"]["type"].as<std::string>();
+    if (!modbusConfig["retry_interval"]) {
+        return false; // 重试间隔缺失
+    }
+    modbus.retry_interval = modbusConfig["retry_interval"].as<int>();
 
-    if (config["ConfigModbus"]["device_id"])
-        modbus.device_id = config["ConfigModbus"]["device_id"].as<std::string>();
+    if (!modbusConfig["type"]) {
+        return false; // 类型缺失
+    }
+    modbus.Type = modbusConfig["type"].as<std::string>();
+
+    if (!modbusConfig["device_id"]) {
+        return false; // 设备 ID 缺失
+    }
+    modbus.device_id = modbusConfig["device_id"].as<std::string>();
 
     // 解析 data_points
-    for (const YAML::Node &dataPointNode : config["data_points"]) {
-        ConfigDataModbus::data_points_t dataPoint;
+    const YAML::Node &dataPoints = config["data_points"];
+    if (dataPoints && dataPoints.IsSequence()) {
+        for (const YAML::Node &dataPointNode : dataPoints) {
+            ConfigDataModbus::data_points_t dataPoint;
 
-        // 解析每个 data_point 的配置
-        dataPoint.name = dataPointNode["name"].as<std::string>();
-        dataPoint.address = dataPointNode["address"].as<uint16_t>();
-        dataPoint.type = dataPointNode["type"].as<std::string>();
-        dataPoint.data_type = dataPointNode["data_type"].as<std::string>();
-        dataPoint.scale = dataPointNode["scale"].as<float>();
-        dataPoint.offset = dataPointNode["offset"].as<float>();
-        // 存储数据点配置
-        modbus.data_points_map[dataPoint.name] = dataPoint;
+            if (!dataPointNode["name"] || !dataPointNode["address"] || !dataPointNode["type"]
+                || !dataPointNode["data_type"] || !dataPointNode["scale"]
+                || !dataPointNode["offset"]) {
+                return false; // 数据点的某个字段缺失
+            }
+
+            // 解析每个 data_point 的配置
+            dataPoint.name = dataPointNode["name"].as<std::string>();
+            dataPoint.address = dataPointNode["address"].as<uint16_t>();
+            dataPoint.type = dataPointNode["type"].as<std::string>();
+            dataPoint.data_type = dataPointNode["data_type"].as<std::string>();
+            dataPoint.scale = dataPointNode["scale"].as<float>();
+            dataPoint.offset = dataPointNode["offset"].as<float>();
+
+            // 存储数据点配置
+            modbus.data_points_map[dataPoint.name] = dataPoint;
+        }
+    } else {
+        return false; // 如果 data_points 节点不存在或不是序列，直接返回 false
     }
+
+    // 将解析好的 Modbus 配置存储到数据结构中
     data->modbus[modbus.device_id] = modbus;
+
+    // 解析成功
+    return true;
 }
 
 std::vector<std::string> Config::getDeviceConfigPaths(const std::string &baseConfigPath)

@@ -99,7 +99,7 @@ private:
     Config();
     Config(const Config &) = delete;
     Config &operator=(const Config &) = delete;
-    void parseModbusConfig(const YAML::Node &config, std::unique_ptr<ConfigData> &data);
+    bool parseModbusConfig(const YAML::Node &config, std::unique_ptr<ConfigData> &data);
     std::vector<std::string> getDeviceConfigPaths(const std::string &baseConfigPath);
     void loadConfig(const std::string &filename);
 };
