@@ -32,6 +32,7 @@ set(INSTALL_INCLUDE_DIR "${CMAKE_INSTALL_PREFIX}/include")
 set(OBJ_CPP_INCLUDE
     ${CMAKE_SOURCE_DIR}/common
     ${CMAKE_SOURCE_DIR}/thirdparty/BS_thread_pool/include
+    ${CMAKE_SOURCE_DIR}/thirdparty/hiredis/include
     ${CMAKE_SOURCE_DIR}/thirdparty/boost/include
     ${CMAKE_SOURCE_DIR}/thirdparty/nlohmann/include
     ${CMAKE_SOURCE_DIR}/thirdparty/modbus/include
@@ -49,6 +50,7 @@ set(OBJ_CPP_INCLUDE
 file(GLOB SOURCES_CC_FOR_CPOMMON "${CMAKE_CURRENT_SOURCE_DIR}/../common/config/*.cc")
 file(GLOB SOURCES_CC_FOR_MAIN "${CMAKE_CURRENT_SOURCE_DIR}/*.cc")
 file(GLOB SOURCES_CC_FOR_MODBUS "${CMAKE_CURRENT_SOURCE_DIR}/modbus/*.cc")
+file(GLOB SOURCES_CC_FOR_REDIS "${CMAKE_CURRENT_SOURCE_DIR}/redis-api/*.cc")
 
 
 message(STATUS "Collected CPP sources: ${SOURCES_CC_FOR_MAIN}")
@@ -58,7 +60,9 @@ message(STATUS "OBJ_CPP_INCLUDE: ${OBJ_CPP_INCLUDE}")
 # 合并所有查找到的文件列表
 set(MAIN_SOURCES ${SOURCES_CC_FOR_MAIN}
 ${SOURCES_CC_FOR_CPOMMON} 
-${SOURCES_CC_FOR_MODBUS})
+${SOURCES_CC_FOR_MODBUS}
+${SOURCES_CC_FOR_REDIS}
+)
 
 
 option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
@@ -82,6 +86,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/thirdparty/yaml-cpp/lib/libyaml-cpp.a
     ${CMAKE_SOURCE_DIR}/common/log/lib/liblog.a
     ${CMAKE_SOURCE_DIR}/thirdparty/modbus/lib/libmodbus.a
+    ${CMAKE_SOURCE_DIR}/thirdparty/hiredis/lib/libhiredis.a
     pthread 
     rt
 )

@@ -7,6 +7,7 @@
 #include "modbus/app_modbus.h"
 #include "log/logger.h"
 #include "config/config.h"
+#include "redis-api/app_redis.h"
 
 int main()
 {
@@ -15,6 +16,7 @@ int main()
     auto &ptr = Config::getInstance();
     ptr.init("config");
     ptr.getConfig()->getModbus("test_1")->to_string();
+    DRDSDataRedis redis;
 
     return 0;
 }
