@@ -6,19 +6,15 @@
 
 #include "modbus/app_modbus.h"
 #include "log/logger.h"
+#include "config/config.h"
 
 int main()
 {
     Logger::Instance().setFlushOnLevel(Logger::info);
     Logger::Instance().Init("log/myapp.log", Logger::both, Logger::trace, 60, 5);
-    AppModbus modbus("config/config.yaml");
-    modbus.init();
-    std::thread t1([&modbus]() {
-            modbus.run();
-        });
-    t1.detach();
-    while (std::cin.get() != '\n') {
-    }
-    modbus.stop(); 
+    auto &ptr = Config::getInstance();
+    ptr.init("config");
+    ptr.getConfig()->getModbus("test_1")->to_string();
+
     return 0;
 }

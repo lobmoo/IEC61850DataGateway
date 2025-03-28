@@ -11,6 +11,7 @@ ConfigModbus:
   cmd_interval: 100           # 命令发送间隔（毫秒）
   max_retries: 20000000              # 最大重试次数
   retry_interval: 3000         # 重试间隔（毫秒）
+  device_id: "test_1"
 
 "data_points": [
     {

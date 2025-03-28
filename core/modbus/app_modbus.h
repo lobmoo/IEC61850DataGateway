@@ -27,7 +27,6 @@ private:
     std::mutex mutex_;
 
 private:
-    std::vector<std::string> getDeviceConfigPaths(const std::string &baseConfigPath);
     std::shared_ptr<ModbusApi> getDeviceApi(const std::string &deviceId);
     void readRegisters(const std::string &deviceId, uint16_t startAddr, int nbRegs, uint16_t *dest);
     void writeRegister(const std::string &deviceId, uint16_t addr, uint16_t value);

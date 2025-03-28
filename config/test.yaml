@@ -1,0 +1,34 @@
+ConfigModbus:
+  type: "TCP"                 # Modbus 类型（TCP/RTU）
+  TCP:
+    ip: "127.0.0.3"          # Modbus TCP IP 地址
+    port: 1502                 # Modbus TCP 端口号
+  RTU:
+    port_name: "/dev/ttyUSB0" # Modbus RTU 串口名称
+    baudrate: 9600            # 波特率
+    parity: "N"               # 校验位（无校验：N，偶校验：E，奇校验：O）
+    slave_addr: 1             # 从站地址
+  cmd_interval: 100           # 命令发送间隔（毫秒）
+  max_retries: 20000000              # 最大重试次数
+  retry_interval: 3000         # 重试间隔（毫秒）
+  device_id: "test_2"
+
+"data_points": [
+    {
+      "name": "Temperature",
+      "address": 0x0001,
+      "type": "holding_register",
+      "data_type": "float32",
+      "scale": 0.1,
+      "offset": 0
+    },
+    {
+      "name": "Pressure",
+      "address": 0x0002,
+      "type": "input_register",
+      "data_type": "int16",
+      "scale": 1,
+      "offset": 0
+    }
+]
+
