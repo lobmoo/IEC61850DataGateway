@@ -1,3 +1,18 @@
+/**
+ * @file config.cc
+ * @brief 
+ * @author wwk (1162431386@qq.com)
+ * @version 1.0
+ * @date 2025-03-28
+ * 
+ * @copyright Copyright (c) 2025  by  wwk
+ * 
+ * @par 修改日志:
+ * <table>
+ * <tr><th>Date       <th>Version <th>Author  <th>Description
+ * <tr><td>2025-03-28     <td>1.0     <td>wwk   <td>修改?
+ * </table>
+ */
 #include "config.h"
 #include <filesystem>
 #include <yaml-cpp/yaml.h>
@@ -45,23 +60,21 @@ const ConfigData *Config::getConfig()
     return data.get();
 }
 
-
 bool Config::parseModbusConfig(const YAML::Node &config, std::unique_ptr<ConfigData> &data)
 {
- 
+
     ConfigDataModbus modbus;
 
-   
     const YAML::Node &modbusConfig = config["ConfigModbus"];
     if (!modbusConfig) {
-        return false; 
+        return false;
     }
 
     // 解析 TCP 配置
     const YAML::Node &tcpConfig = modbusConfig["TCP"];
     if (tcpConfig) {
         if (!tcpConfig["ip"]) {
-            return false; 
+            return false;
         }
         modbus.tcp.ip = tcpConfig["ip"].as<std::string>();
 
