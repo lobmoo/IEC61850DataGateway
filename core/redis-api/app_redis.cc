@@ -7,8 +7,8 @@
  *
  * @copyright Copyright (c) 2024  by  wwk
  *
- * @par 修改日志:单例模式，redis数据库操作接口
- * 该接口不是线程安全的，不建议在多线程环境下使用单个实例操作 <table>
+ * @par 修改日志:
+ * <table>
  * <tr><th>Date       <th>Version <th>Author  <th>Description
  * <tr><td>2024-09-13     <td>1.0     <td>wwk   <td>修改?
  * </table>
