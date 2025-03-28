@@ -18,13 +18,25 @@ struct ConfigDataModbus {
         std::string parity;
         int slave_addr;
     };
+    
+    struct data_points_t {
+        std::string name;
+        int address;
+        std::string type;
+        std::string data_type;
+        float scale;
+        float offset;
+    };
 
+    std::string device_id;
     std::string Type;
     TCP tcp;
     RTU rtu;
     int cmd_interval;
     int max_retries;
     int retry_interval;
+    std::vector<data_points_t> data_points;
+
 
     inline void to_string() const
     {
