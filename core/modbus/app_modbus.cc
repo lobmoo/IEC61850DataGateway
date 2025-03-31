@@ -33,24 +33,69 @@ AppModbus::~AppModbus()
 bool AppModbus::init()
 {
 
-    Config::getInstance().init(configPath_);
-    // const ConfigData *config = Config::getInstance().getConfig();
-    // ModbusType type = ModbusType::TCP;
-    // if (config->modbus.Type == "TCP") {
-    //     type = ModbusType::TCP;
-    // } else if (config->modbus.Type == "RTU") {
-    //     type = ModbusType::RTU;
-    // }
+    auto mConfig = Config::getInstance().getConfig()->modbus;
+    if (mConfig.empty()) {
+        LOG(error) << "Modbus configuration is empty or invalid.";
+        return false;
+    }
 
-    // config->modbus.to_string();
-    // devices_[config->modbus.device_id] = std::make_shared<ModbusApi>(
-    //     config->modbus.rtu.slave_addr, type, 0, config->modbus.cmd_interval,
-    //     config->modbus.rtu.port_name, config->modbus.rtu.baudrate,
-    //     config->modbus.rtu.parity == "NONE" ? Parity::NONE : Parity::ODD, config->modbus.tcp.ip,
-    //     config->modbus.tcp.port, config->modbus.max_retries, config->modbus.retry_interval);
+    try {
+        for (auto &devices : mConfig) {
+            auto deviceId = devices.first;
+            auto config = devices.second;
 
+            if (config.Type.empty() || config.device_id.empty()) {
+                LOG(error) << "Device " << deviceId << " has incomplete configuration, skipping.";
+                continue;
+            }
+
+            ModbusType type = ModbusType::TCP;
+            if (config.Type == "TCP") {
+                type = ModbusType::TCP;
+            } else if (config.Type == "RTU") {
+                type = ModbusType::RTU;
+            } else {
+                LOG(error) << "Unknown Modbus type for device " << deviceId << ": " << config.Type;
+                continue;
+            }
+
+            if (devices_.find(deviceId) != devices_.end()) {
+                LOG(warning) << "Device " << deviceId << " already exists, skipping.";
+                continue;
+            }
+
+            if (type == ModbusType::RTU
+                && (config.rtu.port_name.empty() || config.rtu.baudrate <= 0)) {
+                LOG(error) << "Invalid RTU configuration for device " << deviceId << ", skipping.";
+                continue;
+            }
+            if (type == ModbusType::TCP && (config.tcp.ip.empty() || config.tcp.port <= 0)) {
+                LOG(error) << "Invalid TCP configuration for device " << deviceId << ", skipping.";
+                continue;
+            }
+
+            try {
+                /*¶ª½øÈ¥´ýÃü*/
+                devices_[config.device_id] = std::make_shared<ModbusApi>(
+                    config.rtu.slave_addr, type, 0, config.cmd_interval, config.rtu.port_name,
+                    config.rtu.baudrate, config.rtu.parity == "NONE" ? Parity::NONE : Parity::ODD,
+                    config.tcp.ip, config.tcp.port, config.max_retries, config.retry_interval);
+            } catch (const std::exception &e) {
+                LOG(error) << "Failed to create ModbusApi for device " << deviceId << ": "
+                           << e.what();
+                continue;
+            }
+        }
+    } catch (const std::exception &e) {
+        LOG(error) << "Unexpected error during Modbus initialization: " << e.what();
+        return false;
+    }
+
+    LOG(info) << "AppModbus initialized.";
     return true;
 }
+
+
 
 void AppModbus::readRegisters(
     const std::string &deviceId, uint16_t startAddr, int nbRegs, uint16_t *dest)
