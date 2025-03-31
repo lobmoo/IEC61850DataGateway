@@ -139,9 +139,6 @@ void AppModbus::runTask()
             }
         });
     }
-    thread_pool_.wait();
-    LOG(info) << "AppModbus::stop";
-    return;
 }
 
 void AppModbus::stop()
@@ -154,6 +151,8 @@ void AppModbus::stop()
         }
     }
     running_ = false;
+    thread_pool_.wait();
+    LOG(info) << "AppModbus::stop";
 }
 
 std::shared_ptr<ModbusApi> AppModbus::getDeviceApi(const std::string &deviceId)
