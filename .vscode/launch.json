@@ -8,8 +8,8 @@
       "args": [],
       "stopAtEntry": false,
       "externalConsole": false,
-      "cwd": "/home/wwk/work/IEC61850DataGateway",
-      "program": "/home/wwk/work/IEC61850DataGateway/test_exec",
+      "cwd": "/home/wwk/workspaces/IEC61850DataGateway",
+      "program": "/home/wwk/workspaces/IEC61850DataGateway/test_exec",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [

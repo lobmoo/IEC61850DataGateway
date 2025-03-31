@@ -19,6 +19,7 @@
 
 #include <string>
 #include <modbus/modbus.h>
+#include <atomic>
 
 enum class ModbusType { TCP, RTU };
 
@@ -35,6 +36,7 @@ public:
 
     void readRegisters(uint16_t startAddr, int nbRegs, uint16_t *dest);
     void writeRegister(uint16_t addr, uint16_t value);
+    void stop();
 
 private:
     modbus_t *createModbusContext();
@@ -53,6 +55,7 @@ private:
     modbus_t *ctx_;
     int maxRetries_;    // 最大重试次数
     int retryInterval_; // 重试间隔（毫秒）
+    std::atomic<bool> runing_;
 };
 
 #endif // APP_MODBUS_H

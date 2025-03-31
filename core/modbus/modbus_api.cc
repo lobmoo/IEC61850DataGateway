@@ -29,7 +29,7 @@ ModbusApi::ModbusApi(
     int baudrate, Parity parity, const std::string &ip, int port, int maxRetries, int retryInterval)
     : slaveAddr_(slaveAddr), type_(type), channel_(channel), cmdInterval_(cmdInterval),
       portName_(portName), baudrate_(baudrate), parity_(parity), ip_(ip), port_(port),
-      ctx_(nullptr), maxRetries_(maxRetries), retryInterval_(retryInterval)
+      ctx_(nullptr), maxRetries_(maxRetries), retryInterval_(retryInterval), runing_(true)
 {
     
 }
@@ -111,7 +111,7 @@ void ModbusApi::applyCommandInterval()
 void ModbusApi::reconnect()
 {
     int retries = 0;
-    while (retries <= maxRetries_) {
+    while (retries <= maxRetries_ && runing_) {
         ctx_ = createModbusContext();
         if (ctx_) {
             LOG(info) << "Successfully reconnected to Modbus device.";
@@ -126,4 +126,9 @@ void ModbusApi::reconnect()
 
     LOG(error) << "Exhausted all reconnection attempts. Modbus device is unavailable." << std::endl;
     ctx_ = nullptr;
+}
+
+void ModbusApi::stop()
+{
+    runing_ = false;
 }

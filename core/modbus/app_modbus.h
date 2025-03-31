@@ -27,14 +27,11 @@ class AppModbus
 {
 
 public:
-    AppModbus(const std::string &configPath);
-
+    AppModbus();
     ~AppModbus();
-
-    bool init();
-    void run();
+    bool run();
     void stop();
-   
+
 private:
     std::string configPath_;
     std::atomic<bool> running_;
@@ -46,7 +43,7 @@ private:
     std::shared_ptr<ModbusApi> getDeviceApi(const std::string &deviceId);
     void readRegisters(const std::string &deviceId, uint16_t startAddr, int nbRegs, uint16_t *dest);
     void writeRegister(const std::string &deviceId, uint16_t addr, uint16_t value);
-
+    void runTask();
 };
 
 #endif // app_modbus_h

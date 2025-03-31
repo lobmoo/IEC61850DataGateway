@@ -21,8 +21,7 @@
 #include <thread>
 #include <filesystem>
 
-AppModbus::AppModbus(const std::string &configPath)
-    : configPath_(configPath), running_(true), thread_pool_(1024)
+AppModbus::AppModbus():running_(true), thread_pool_(1024)
 {
 }
 
@@ -30,7 +29,7 @@ AppModbus::~AppModbus()
 {
 }
 
-bool AppModbus::init()
+bool AppModbus::run()
 {
 
     auto mConfig = Config::getInstance().getConfig()->modbus;
@@ -90,12 +89,13 @@ bool AppModbus::init()
         LOG(error) << "Unexpected error during Modbus initialization: " << e.what();
         return false;
     }
-
-    LOG(info) << "AppModbus initialized.";
+    
+    (void)thread_pool_.submit_task([this]() {
+        runTask();
+    });
+    LOG(info) << "AppModbus initialized successfully.";
     return true;
 }
-
-
 
 void AppModbus::readRegisters(
     const std::string &deviceId, uint16_t startAddr, int nbRegs, uint16_t *dest)
@@ -118,15 +118,41 @@ void AppModbus::writeRegister(const std::string &deviceId, uint16_t addr, uint16
     }
 }
 
-void AppModbus::run()
+void AppModbus::runTask()
 {
-    while (running_) {
+
+    // 定期执行的任务 读取数据
+    for (const auto &device : devices_) {
+        const auto &deviceId = device.first;
+        (void)thread_pool_.submit_task([this, deviceId]() {
+            auto modbusApi = getDeviceApi(deviceId);
+            if (modbusApi) {
+                while(running_) {         
+                    // 读取数据的逻辑
+                    uint16_t data[10]; // 假设读取10个寄存器
+                    modbusApi->readRegisters(0, 10, data);
+                    LOG(info) << "Read data from device " << deviceId << ": " << data[0];   
+                    std::this_thread::sleep_for(std::chrono::milliseconds(1000)); // 1秒间隔
+                }
+
+               
+            }
+        });
     }
+    thread_pool_.wait();
     LOG(info) << "AppModbus::stop";
+    return;
 }
 
 void AppModbus::stop()
-{
+{   
+    for (const auto &device : devices_)
+    {
+        auto modbusApi = getDeviceApi(device.first);
+        if (modbusApi) {
+            modbusApi->stop();
+        }
+    }
     running_ = false;
 }
 

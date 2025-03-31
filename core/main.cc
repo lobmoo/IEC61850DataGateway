@@ -15,8 +15,15 @@ int main()
     Logger::Instance().Init("log/myapp.log", Logger::both, Logger::trace, 60, 5);
     auto &ptr = Config::getInstance();
     ptr.init("config");
-    ptr.getConfig()->getModbus("test_1")->to_string();
-    DRDSDataRedis redis;
-
+    AppModbus appModbus;
+    appModbus.run();
+    sleep(5);
+    appModbus.stop();
+    LOG(info) << "AppModbus stopped";   
     return 0;
 }
+
+
+
+
+
