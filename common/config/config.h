@@ -51,6 +51,7 @@ struct ConfigDataModbus {
     int cmd_interval;
     int max_retries;
     int retry_interval;
+    std::string byte_order;
     std::unordered_map<std::string, data_points_t> data_points_map;
 
     void to_string() const{
@@ -65,6 +66,7 @@ struct ConfigDataModbus {
         LOG(info) << "rtu.baudrate: " << rtu.baudrate;
         LOG(info) << "rtu.parity: " << rtu.parity;
         LOG(info) << "rtu.slave_addr: " << rtu.slave_addr;
+        LOG(info) << "byte_order: " << byte_order;
         for (auto &data_point : data_points_map) {
             LOG(info) << "data_point.name: " << data_point.second.name;
             LOG(info) << "data_point.address: " << data_point.second.address;

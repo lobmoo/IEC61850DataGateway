@@ -137,6 +137,7 @@ bool Config::parseModbusConfig(const YAML::Node &config, std::unique_ptr<ConfigD
         return false; // Éè±¸ ID È±Ê§
     }
     modbus.device_id = modbusConfig["device_id"].as<std::string>();
+    modbus.byte_order = modbusConfig["byte_order"].as<std::string>();
 
     // ½âÎö data_points
     const YAML::Node &dataPoints = config["data_points"];

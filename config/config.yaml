@@ -12,6 +12,7 @@ ConfigModbus:
   max_retries: 1             # 最大重试次数
   retry_interval: 1000         # 重试间隔（毫秒）
   device_id: "test_1"
+  byte_order: "big"         # 字节序（大端：big，小端：little）
 
 "data_points": [
     {

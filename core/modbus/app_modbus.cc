@@ -118,6 +118,12 @@ void AppModbus::writeRegister(const std::string &deviceId, uint16_t addr, uint16
     }
 }
 
+
+
+
+
+
+
 void AppModbus::runTask()
 {
 
@@ -129,13 +135,13 @@ void AppModbus::runTask()
             if (modbusApi) {
                 while(running_) {         
                     // 读取数据的逻辑
+
+                    
                     uint16_t data[10]; // 假设读取10个寄存器
                     modbusApi->readRegisters(0, 10, data);
                     LOG(info) << "Read data from device " << deviceId << ": " << data[0];   
                     std::this_thread::sleep_for(std::chrono::milliseconds(1000)); // 1秒间隔
                 }
-
-               
             }
         });
     }
