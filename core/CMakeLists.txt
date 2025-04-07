@@ -31,12 +31,12 @@ set(INSTALL_INCLUDE_DIR "${CMAKE_INSTALL_PREFIX}/include")
 #头文件
 set(OBJ_CPP_INCLUDE
     ${CMAKE_SOURCE_DIR}/common
-    ${CMAKE_SOURCE_DIR}/thirdparty/BS_thread_pool/include
-    ${CMAKE_SOURCE_DIR}/thirdparty/hiredis/include
-    ${CMAKE_SOURCE_DIR}/thirdparty/boost/include
-    ${CMAKE_SOURCE_DIR}/thirdparty/nlohmann/include
-    ${CMAKE_SOURCE_DIR}/thirdparty/modbus/include
-    ${CMAKE_SOURCE_DIR}/thirdparty/yaml-cpp/include
+    ${CMAKE_SOURCE_DIR}/thirdparty/BS_thread_pool/${ARCH}/include
+    ${CMAKE_SOURCE_DIR}/thirdparty/hiredis/${ARCH}/include
+    ${CMAKE_SOURCE_DIR}/thirdparty/boost/${ARCH}/include
+    ${CMAKE_SOURCE_DIR}/thirdparty/nlohmann/${ARCH}/include
+    ${CMAKE_SOURCE_DIR}/thirdparty/modbus/${ARCH}/include
+    ${CMAKE_SOURCE_DIR}/thirdparty/yaml-cpp/${ARCH}/include
     ${CMAKE_SOURCE_DIR}/core/
 
 )
@@ -79,14 +79,15 @@ set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMA
 
 target_include_directories(${PROJECT_NAME} PRIVATE  ${OBJ_CPP_INCLUDE})
 
+
 target_link_libraries(${PROJECT_NAME} PRIVATE 
-    ${CMAKE_SOURCE_DIR}/thirdparty/boost/lib/libboost_system.a
-    ${CMAKE_SOURCE_DIR}/thirdparty/boost/lib/libboost_thread.a
-    ${CMAKE_SOURCE_DIR}/thirdparty/boost/lib/libboost_filesystem.a
-    ${CMAKE_SOURCE_DIR}/thirdparty/yaml-cpp/lib/libyaml-cpp.a
+    ${CMAKE_SOURCE_DIR}/thirdparty/boost/${ARCH}/lib/libboost_system.a
+    ${CMAKE_SOURCE_DIR}/thirdparty/boost/${ARCH}/lib/libboost_thread.a
+    ${CMAKE_SOURCE_DIR}/thirdparty/boost/${ARCH}/lib/libboost_filesystem.a
+    ${CMAKE_SOURCE_DIR}/thirdparty/yaml-cpp/${ARCH}/lib/libyaml-cpp.a
     ${CMAKE_SOURCE_DIR}/common/log/lib/liblog.a
-    ${CMAKE_SOURCE_DIR}/thirdparty/modbus/lib/libmodbus.a
-    ${CMAKE_SOURCE_DIR}/thirdparty/hiredis/lib/libhiredis.a
+    ${CMAKE_SOURCE_DIR}/thirdparty/modbus/${ARCH}/lib/libmodbus.a
+    ${CMAKE_SOURCE_DIR}/thirdparty/hiredis/${ARCH}/lib/libhiredis.a
     pthread 
     rt
 )

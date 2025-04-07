@@ -15,11 +15,20 @@
 cmake_minimum_required(VERSION 3.16)
 
 project(DEMO  LANGUAGES  CXX)
+
+if(CMAKE_SYSTEM_PROCESSOR STREQUAL "arm" OR CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")
+    set(ARCH "arm")
+elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" OR CMAKE_SYSTEM_PROCESSOR STREQUAL "i386")
+    set(ARCH "x86")
+else()
+    message(FATAL_ERROR "Unsupported architecture: ${CMAKE_SYSTEM_PROCESSOR}")
+endif()
+
+
+
+option(COMPILE_SAMPLE "Build example" OFF)
+
 add_subdirectory(common/log)
-
-
-option(COMPILE_SAMPLE "Build example" ON)
-
 add_subdirectory(core)
 add_dependencies(test_exec log)
 
