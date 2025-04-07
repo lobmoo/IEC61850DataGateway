@@ -42,30 +42,32 @@ ModbusApi::~ModbusApi()
     }
 }
 
-void ModbusApi::readRegisters(uint16_t startAddr, int nbRegs, uint16_t *dest)
+bool ModbusApi::readRegisters(uint16_t startAddr, int nbRegs, uint16_t *dest)
 {
     if (!ctx_) {
         reconnect();
     }
 
     if (modbus_read_registers(ctx_, startAddr, nbRegs, dest) == -1) {
-        throw std::runtime_error(
-            "Failed to read registers: " + std::string(modbus_strerror(errno)));
+        return false;
+        LOG(error) << "Failed to read registers: " + std::string(modbus_strerror(errno));
     }
     applyCommandInterval();
+    return true;
 }
 
-void ModbusApi::writeRegister(uint16_t addr, uint16_t value)
+bool ModbusApi::writeRegister(uint16_t addr, uint16_t value)
 {
     if (!ctx_) {
         reconnect();
     }
 
     if (modbus_write_register(ctx_, addr, value) == -1) {
-        throw std::runtime_error(
-            "Failed to write register: " + std::string(modbus_strerror(errno)));
+        return false;
+        LOG(error) << "Failed to write registers: " + std::string(modbus_strerror(errno));
     }
     applyCommandInterval();
+    return true;
 }
 
 modbus_t *ModbusApi::createModbusContext()

@@ -160,7 +160,7 @@ bool Config::parseModbusConfig(const YAML::Node &config, std::unique_ptr<ConfigD
             dataPoint.offset = dataPointNode["offset"].as<float>();
 
             // 存储数据点配置
-            modbus.data_points_map[dataPoint.name] = dataPoint;
+            modbus.data_points.push_back(dataPoint);
         }
     } else {
         return false; // 如果 data_points 节点不存在或不是序列，直接返回 false

@@ -23,6 +23,14 @@
 #include <map>
 #include <BS_thread_pool.hpp>
 
+#include "config/config.h"
+
+struct RegisterRange {
+    int start_addr;
+    int count;
+    size_t end_index; // 结束的数据点索引
+};
+
 class AppModbus
 {
 
@@ -43,6 +51,10 @@ private:
     std::shared_ptr<ModbusApi> getDeviceApi(const std::string &deviceId);
     void readRegisters(const std::string &deviceId, uint16_t startAddr, int nbRegs, uint16_t *dest);
     void writeRegister(const std::string &deviceId, uint16_t addr, uint16_t value);
+    RegisterRange findContinuousRegisters(
+        const std::vector<ConfigDataModbus::data_points_t> &points, size_t start_index);
+    void processContinuousRegisters(
+        std::shared_ptr<ModbusApi> modbusApi, const ConfigDataModbus *config);
     void runTask();
 };
 

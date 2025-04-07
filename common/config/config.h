@@ -52,7 +52,7 @@ struct ConfigDataModbus {
     int max_retries;
     int retry_interval;
     std::string byte_order;
-    std::unordered_map<std::string, data_points_t> data_points_map;
+    std::vector<data_points_t> data_points;
 
     void to_string() const{
         LOG(info) << "device_id: " << device_id;
@@ -67,26 +67,16 @@ struct ConfigDataModbus {
         LOG(info) << "rtu.parity: " << rtu.parity;
         LOG(info) << "rtu.slave_addr: " << rtu.slave_addr;
         LOG(info) << "byte_order: " << byte_order;
-        for (auto &data_point : data_points_map) {
-            LOG(info) << "data_point.name: " << data_point.second.name;
-            LOG(info) << "data_point.address: " << data_point.second.address;
-            LOG(info) << "data_point.type: " << data_point.second.type;
-            LOG(info) << "data_point.data_type: " << data_point.second.data_type;
-            LOG(info) << "data_point.scale: " << data_point.second.scale;
-            LOG(info) << "data_point.offset: " << data_point.second.offset;
+        for (auto &data_point : data_points) {
+            LOG(info) << "data_point.name: " << data_point.name;
+            LOG(info) << "data_point.address: " << data_point.address;
+            LOG(info) << "data_point.type: " << data_point.type;
+            LOG(info) << "data_point.data_type: " << data_point.data_type;
+            LOG(info) << "data_point.scale: " << data_point.scale;
+            LOG(info) << "data_point.offset: " << data_point.offset;
         }
     }
-
-    const data_points_t *getDataPoint(const std::string &name) const{
-        auto it = data_points_map.find(name);
-        if (it != data_points_map.end()) {
-            return &it->second;
-        }
-        return nullptr;
-    }
-
 };
-
 
 
 struct ConfigData {

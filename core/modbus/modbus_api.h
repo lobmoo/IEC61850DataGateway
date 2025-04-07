@@ -34,8 +34,8 @@ public:
         int retryInterval = 1000);
     ~ModbusApi();
 
-    void readRegisters(uint16_t startAddr, int nbRegs, uint16_t *dest);
-    void writeRegister(uint16_t addr, uint16_t value);
+    bool readRegisters(uint16_t startAddr, int nbRegs, uint16_t *dest);
+    bool writeRegister(uint16_t addr, uint16_t value);
     void stop();
 
 private:
