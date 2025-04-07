@@ -17,17 +17,41 @@ ConfigModbus:
 "data_points": [
     {
       "name": "Temperature",
-      "address": 0x0001,
+      "address": 0x0000,
       "type": "holding_register",
-      "data_type": "float32",
+      "data_type": "uint16",
       "scale": 0.1,
+      "offset": 0
+    },
+    {
+      "name": "Pressu",
+      "address": 0x0003,
+      "type": "input_register",
+      "data_type": "uint16",
+      "scale": 1,
       "offset": 0
     },
     {
       "name": "Pressure",
       "address": 0x0002,
       "type": "input_register",
-      "data_type": "int16",
+      "data_type": "uint16",
+      "scale": 1,
+      "offset": 0
+    },
+    {
+      "name": "Humidity",
+      "address": 0x0001,
+      "type": "holding_register",
+      "data_type": "uint16",
+      "scale": 0.01,
+      "offset": 0
+    },
+    {
+      "name": "Status",
+      "address": 0x000e,
+      "type": "coil",
+      "data_type": "float32",
       "scale": 1,
       "offset": 0
     }

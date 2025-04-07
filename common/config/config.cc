@@ -155,7 +155,7 @@ bool Config::parseModbusConfig(const YAML::Node &config, std::unique_ptr<ConfigD
             dataPoint.name = dataPointNode["name"].as<std::string>();
             dataPoint.address = dataPointNode["address"].as<uint16_t>();
             dataPoint.type = dataPointNode["type"].as<std::string>();
-            dataPoint.data_type = dataPointNode["data_type"].as<std::string>();
+            dataPoint.data_type = dataPoint.getDataType(dataPointNode["data_type"].as<std::string>());
             dataPoint.scale = dataPointNode["scale"].as<float>();
             dataPoint.offset = dataPointNode["offset"].as<float>();
 
@@ -168,7 +168,7 @@ bool Config::parseModbusConfig(const YAML::Node &config, std::unique_ptr<ConfigD
 
     // 将解析好的 Modbus 配置存储到数据结构中
     data->modbus[modbus.device_id] = modbus;
-
+    
     // 解析成功
     return true;
 }

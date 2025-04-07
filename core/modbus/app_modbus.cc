@@ -118,24 +118,83 @@ void AppModbus::writeRegister(const std::string &deviceId, uint16_t addr, uint16
 RegisterRange AppModbus::findContinuousRegisters(
     const std::vector<ConfigDataModbus::data_points_t> &points, size_t start_index)
 {
+    RegisterRange range = {0, 0, start_index};
+
+    // 检查输入有效性
     if (start_index >= points.size()) {
-        return {0, 0, start_index};
+        return range;
     }
 
-    int startAddr = points[start_index].address;
-    int currentAddr = startAddr;
-    size_t j = start_index;
+    // 初始化起始点
+    const auto &start_point = points[start_index];
+    range.start_addr = start_point.address;
+    range.end_index = start_index; // 初始化为起始索引
 
-    while (j < points.size()
-           && (currentAddr + ((points[j].data_type == "float32") ? 2 : 1))
-                  <= (points[j].address + 1)) {
-        int regCount = (points[j].data_type == "float32") ? 2 : 1;
-        currentAddr = points[j].address + regCount;
-        j++;
+    // 计算起始点的寄存器数量
+    switch (start_point.data_type) {
+        case ConfigDataModbus::INT16:
+        case ConfigDataModbus::UINT16:
+            range.count = 1; // 2字节 = 1寄存器
+            break;
+        case ConfigDataModbus::INT32:
+        case ConfigDataModbus::UINT32:
+        case ConfigDataModbus::FLOAT32:
+            range.count = 2; // 4字节 = 2寄存器
+            break;
+        default:
+            range.count = 0;
+            return range;
     }
 
-    return {startAddr, currentAddr - startAddr, j};
+    // 如果只有一个数据点
+    if (start_index == points.size() - 1) {
+        return range;
+    }
+
+    // 检查后续的连续寄存器
+    int next_expected_addr = range.start_addr + range.count;
+    size_t current_index = start_index + 1;
+
+    while (current_index < points.size()) {
+        const auto &current_point = points[current_index];
+        int current_reg_count = 0;
+
+        // 计算当前数据点占用的寄存器数量
+        switch (current_point.data_type) {
+            case ConfigDataModbus::INT16:
+            case ConfigDataModbus::UINT16:
+                current_reg_count = 1;
+                break;
+            case ConfigDataModbus::INT32:
+            case ConfigDataModbus::UINT32:
+            case ConfigDataModbus::FLOAT32:
+                current_reg_count = 2;
+                break;
+            default:
+                return range; // 未知类型，结束
+        }
+
+        // 检查地址是否连续
+        if (current_point.address == next_expected_addr) {
+            range.count += current_reg_count;
+            range.end_index = current_index; // 更新为当前索引
+            next_expected_addr = current_point.address + current_reg_count;
+            current_index++;
+        } else {
+            break; // 不连续时退出
+        }
+    }
+
+    return range;
 }
+
+std::vector<ConfigDataModbus::data_points_t> points1 = {
+    {"temp", 40001, "int16", ConfigDataModbus::INT16, 1.0, 0},      // 40001 (1 reg)
+    {"press", 40002, "float32", ConfigDataModbus::FLOAT32, 1.0, 0}, // 40002-40003 (2 regs)
+    {"flow", 40004, "uint16", ConfigDataModbus::UINT16, 1.0, 0},    // 40004 (1 reg)
+    {"other", 40006, "int16", ConfigDataModbus::INT16, 1.0, 0}      // 40006 (1 reg, 不连续)
+};
+
 
 void AppModbus::processContinuousRegisters(
     std::shared_ptr<ModbusApi> modbusApi, const ConfigDataModbus *config)
@@ -144,12 +203,18 @@ void AppModbus::processContinuousRegisters(
     if (points.empty())
         return;
 
-    size_t i = 0;
+    /*地址按照顺序排列，方便拿数据*/
+    std::sort(
+        points.begin(), points.end(),
+        [](const ConfigDataModbus::data_points_t &a, const ConfigDataModbus::data_points_t &b) {
+            return a.address < b.address;
+        });
 
+    size_t i = 0;
     while (i < points.size()) {
         RegisterRange range = findContinuousRegisters(points, i);
+        LOG(debug) << "Processing range: " << range.start_addr << " count: " << range.count << " index: " <<  range.end_index;
         std::vector<uint16_t> buffer(range.count);
-
         // 批量读取
         bool success = modbusApi->readRegisters(range.start_addr, range.count, buffer.data());
         if (!success) {
@@ -157,27 +222,9 @@ void AppModbus::processContinuousRegisters(
             i = range.end_index;
             std::this_thread::sleep_for(std::chrono::milliseconds(config->cmd_interval));
             continue;
-        } 
-        // 解析数据
-        for (size_t k = i; k < range.end_index; k++) {
-            const auto point = points[k];
-            int offset = point.address - range.start_addr;
-
-            float value = 0.0f;
-            if (point.data_type == "float32") {
-                uint32_t combined = (config->byte_order == "big")
-                                        ? (buffer[offset] << 16) | buffer[offset + 1]
-                                        : (buffer[offset + 1] << 16) | buffer[offset];
-                value = *reinterpret_cast<float *>(&combined);
-            } else {
-                value = static_cast<int16_t>(buffer[offset]);
-            }
-
-            float finalValue = value * point.scale + point.offset;
-            LOG(info) << "Device: " << config->device_id << " | " << point.name << " = "
-                      << finalValue << " (raw: " << value << ")";
         }
-        i = range.end_index;
+        // 处理数据
+        i = range.end_index + 1;
     }
 }
 
@@ -194,8 +241,7 @@ void AppModbus::runTask()
                 return;
             }
             while (running_) {
-                processContinuousRegisters(
-                    modbusApi, mConfig);
+                processContinuousRegisters(modbusApi, mConfig);
                 std::this_thread::sleep_for(std::chrono::milliseconds(mConfig->cmd_interval));
             }
         });
