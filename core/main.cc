@@ -17,9 +17,6 @@ int main()
     ptr.init("config");
     AppModbus appModbus;
     appModbus.run();
-    sleep(5);
-    appModbus.stop();
-    LOG(info) << "AppModbus stopped";   
     return 0;
 }
 

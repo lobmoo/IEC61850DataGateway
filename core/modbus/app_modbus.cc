@@ -195,7 +195,7 @@ void AppModbus::runTask()
             while (running_) {
                 processContinuousRegisters(
                     modbusApi, mConfig);
-                std::this_thread::sleep_for(std::chrono::milliseconds(1000)); // 1Ãë¼ä¸ô
+                std::this_thread::sleep_for(std::chrono::milliseconds(mConfig->cmd_interval));
             }
         });
     }
