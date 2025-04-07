@@ -8,8 +8,8 @@ ConfigModbus:
     baudrate: 9600            # 波特率
     parity: "N"               # 校验位（无校验：N，偶校验：E，奇校验：O）
     slave_addr: 1             # 从站地址
-  cmd_interval: 100           # 命令发送间隔（毫秒）
-  max_retries: 1             # 最大重试次数
+  cmd_interval: 2000           # 命令发送间隔（毫秒）
+  max_retries: 5             # 最大重试次数
   retry_interval: 1000         # 重试间隔（毫秒）
   device_id: "test_1"
   byte_order: "big"         # 字节序（大端：big，小端：little）

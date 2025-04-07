@@ -21,6 +21,9 @@
 #include <modbus/modbus.h>
 #include <atomic>
 
+#include <thread>
+#include <mutex>
+
 enum class ModbusType { TCP, RTU };
 
 enum class Parity { NONE, EVEN, ODD };
@@ -39,9 +42,8 @@ public:
     void stop();
 
 private:
+    void reconnectLoop();
     modbus_t *createModbusContext();
-    void applyCommandInterval();
-    void reconnect();
 
     int slaveAddr_;
     ModbusType type_;
@@ -56,6 +58,8 @@ private:
     int maxRetries_;    // 最大重试次数
     int retryInterval_; // 重试间隔（毫秒）
     std::atomic<bool> runing_;
+    std::thread reconnectThread_;
+    std::mutex ctxMutex_;
 };
 
 #endif // APP_MODBUS_H

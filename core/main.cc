@@ -17,6 +17,7 @@ int main()
     ptr.init("config");
     AppModbus appModbus;
     appModbus.run();
+    while(1);
     return 0;
 }
 

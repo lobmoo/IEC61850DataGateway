@@ -155,6 +155,7 @@ void AppModbus::processContinuousRegisters(
         if (!success) {
             LOG(error) << "Failed to read " << " registers from " << range.start_addr << " count: " << range.count;
             i = range.end_index;
+            std::this_thread::sleep_for(std::chrono::milliseconds(config->cmd_interval));
             continue;
         } 
         // ½âÎöÊı¾İ

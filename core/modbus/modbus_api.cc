@@ -31,7 +31,7 @@ ModbusApi::ModbusApi(
       portName_(portName), baudrate_(baudrate), parity_(parity), ip_(ip), port_(port),
       ctx_(nullptr), maxRetries_(maxRetries), retryInterval_(retryInterval), runing_(true)
 {
-    
+    reconnectThread_ = std::thread(&ModbusApi::reconnectLoop, this);
 }
 
 ModbusApi::~ModbusApi()
@@ -44,30 +44,59 @@ ModbusApi::~ModbusApi()
 
 bool ModbusApi::readRegisters(uint16_t startAddr, int nbRegs, uint16_t *dest)
 {
+    std::lock_guard<std::mutex> lock(ctxMutex_);
     if (!ctx_) {
-        reconnect();
+        LOG(error) << "No valid Modbus context available.";
+        return false;
     }
 
     if (modbus_read_registers(ctx_, startAddr, nbRegs, dest) == -1) {
         return false;
         LOG(error) << "Failed to read registers: " + std::string(modbus_strerror(errno));
     }
-    applyCommandInterval();
     return true;
 }
 
 bool ModbusApi::writeRegister(uint16_t addr, uint16_t value)
 {
+    std::lock_guard<std::mutex> lock(ctxMutex_);
     if (!ctx_) {
-        reconnect();
+        LOG(error) << "No valid Modbus context available.";
+        return false;
     }
 
     if (modbus_write_register(ctx_, addr, value) == -1) {
         return false;
         LOG(error) << "Failed to write registers: " + std::string(modbus_strerror(errno));
     }
-    applyCommandInterval();
     return true;
+}
+
+void ModbusApi::reconnectLoop()
+{
+    int retries = 0;
+    while (runing_) {
+        if (!ctx_) {
+            // 检查是否超过最大重连次数
+            if (maxRetries_ > 0 && retries >= maxRetries_) {
+                LOG(error) << "Exhausted all reconnection attempts. Modbus device is unavailable.";
+                break; // 超过最大重连次数后退出循环
+            }
+            ctx_ = createModbusContext();
+            if (ctx_) {
+                LOG(info) << "Successfully reconnected to Modbus device.";
+                retries = 0; // 重置重连计数器
+            } else {
+                LOG(warning) << "Reconnection attempt " << retries + 1 << "/" << maxRetries_
+                             << " failed. Retrying in " << retryInterval_ << " ms...";
+                retries++;
+                std::this_thread::sleep_for(std::chrono::milliseconds(retryInterval_));
+            }
+        } else {
+            // 如果连接正常，等待一段时间再检查
+            std::this_thread::sleep_for(std::chrono::milliseconds(retryInterval_));
+        }
+    }
 }
 
 modbus_t *ModbusApi::createModbusContext()
@@ -99,36 +128,9 @@ modbus_t *ModbusApi::createModbusContext()
         modbus_free(ctx);
         return nullptr;
     }
-
     return ctx;
 }
 
-void ModbusApi::applyCommandInterval()
-{
-    if (cmdInterval_ > 0) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(cmdInterval_));
-    }
-}
-
-void ModbusApi::reconnect()
-{
-    int retries = 0;
-    while (retries <= maxRetries_ && runing_) {
-        ctx_ = createModbusContext();
-        if (ctx_) {
-            LOG(info) << "Successfully reconnected to Modbus device.";
-            return;
-        }
-
-        LOG(warning) << "Reconnection attempt " << retries + 1 << "/" << maxRetries_
-                     << " failed. Retrying in " << retryInterval_ << " ms..." << std::endl;
-        std::this_thread::sleep_for(std::chrono::milliseconds(retryInterval_));
-        retries++;
-    }
-
-    LOG(error) << "Exhausted all reconnection attempts. Modbus device is unavailable." << std::endl;
-    ctx_ = nullptr;
-}
 
 void ModbusApi::stop()
 {
