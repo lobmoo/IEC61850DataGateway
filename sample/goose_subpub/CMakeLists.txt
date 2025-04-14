@@ -22,21 +22,19 @@ set(OBJ_CPP_INCLUDE
     ${CMAKE_CURRENT_SOURCE_DIR}/goose_subpub
 )
 
-list(APPEND OBJ_CPP_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/../../thirdparty/iec61850/include)
+list(APPEND OBJ_CPP_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/../../thirdparty/iec61850/${ARCH}/include)
 
 target_include_directories(goose_pub_exec PRIVATE  ${OBJ_CPP_INCLUDE})
 target_include_directories(goose_sub_exec PRIVATE  ${OBJ_CPP_INCLUDE})
 
-#…Ë÷√ø‚¬∑æ∂
-set(OBJ_CPP_LIBRARY_PATH  ${CMAKE_CURRENT_SOURCE_DIR}/../../thirdparty/iec61850/lib)
 
 
     
 target_link_libraries(goose_pub_exec PRIVATE
     ${OBJ_CPP_LIBS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../thirdparty/iec61850/lib/libiec61850.a
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../thirdparty/iec61850/lib/libhal.a
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../thirdparty/iec61850/lib/libhal-shared.a
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../thirdparty/iec61850/${ARCH}/lib/libiec61850.a
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../thirdparty/iec61850/${ARCH}/lib/libhal.a
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../thirdparty/iec61850/${ARCH}/lib/libhal-shared.a
     pthread
     rt
 )
@@ -44,9 +42,9 @@ target_link_libraries(goose_pub_exec PRIVATE
 
 target_link_libraries(goose_sub_exec PRIVATE 
     ${OBJ_CPP_LIBS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../thirdparty/iec61850/lib/libiec61850.a
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../thirdparty/iec61850/lib/libhal.a
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../thirdparty/iec61850/lib/libhal-shared.a
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../thirdparty/iec61850/${ARCH}/lib/libiec61850.a
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../thirdparty/iec61850/${ARCH}/lib/libhal.a
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../thirdparty/iec61850/${ARCH}/lib/libhal-shared.a
     pthread
     rt
 )
