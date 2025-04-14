@@ -1,0 +1,11 @@
+prefix=/home/wwk/workspeace/yaml-cpp/install
+exec_prefix=${prefix}
+includedir=/home/wwk/workspeace/yaml-cpp/install/include
+libdir=/home/wwk/workspeace/yaml-cpp/install/lib
+
+Name: Yaml-cpp
+Description: A YAML parser and emitter for C++
+Version: 0.8.0
+Requires:
+Libs: -L${libdir} -lyaml-cpp
+Cflags: -I${includedir}

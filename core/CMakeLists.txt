@@ -33,7 +33,6 @@ set(OBJ_CPP_INCLUDE
     ${CMAKE_SOURCE_DIR}/common
     ${CMAKE_SOURCE_DIR}/thirdparty/BS_thread_pool/${ARCH}/include
     ${CMAKE_SOURCE_DIR}/thirdparty/hiredis/${ARCH}/include
-    ${CMAKE_SOURCE_DIR}/thirdparty/boost/${ARCH}/include
     ${CMAKE_SOURCE_DIR}/thirdparty/nlohmann/${ARCH}/include
     ${CMAKE_SOURCE_DIR}/thirdparty/modbus/${ARCH}/include
     ${CMAKE_SOURCE_DIR}/thirdparty/yaml-cpp/${ARCH}/include
@@ -81,9 +80,6 @@ target_include_directories(${PROJECT_NAME} PRIVATE  ${OBJ_CPP_INCLUDE})
 
 
 target_link_libraries(${PROJECT_NAME} PRIVATE 
-    ${CMAKE_SOURCE_DIR}/thirdparty/boost/${ARCH}/lib/libboost_system.a
-    ${CMAKE_SOURCE_DIR}/thirdparty/boost/${ARCH}/lib/libboost_thread.a
-    ${CMAKE_SOURCE_DIR}/thirdparty/boost/${ARCH}/lib/libboost_filesystem.a
     ${CMAKE_SOURCE_DIR}/thirdparty/yaml-cpp/${ARCH}/lib/libyaml-cpp.a
     ${CMAKE_SOURCE_DIR}/common/log/lib/liblog.a
     ${CMAKE_SOURCE_DIR}/thirdparty/modbus/${ARCH}/lib/libmodbus.a
