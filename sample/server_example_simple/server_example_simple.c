@@ -31,14 +31,12 @@
 
 static int running = 0;
 
-void
-sigint_handler(int signalId)
+void sigint_handler(int signalId)
 {
-	running = 0;
+    running = 0;
 }
 
-int
-main(int argc, char** argv)
+int main(int argc, char **argv)
 {
     int tcpPort = 102;
 
