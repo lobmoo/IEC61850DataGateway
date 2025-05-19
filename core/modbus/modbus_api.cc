@@ -31,6 +31,13 @@ ModbusApi::ModbusApi(
       portName_(portName), baudrate_(baudrate), parity_(parity), ip_(ip), port_(port),
       ctx_(nullptr), maxRetries_(maxRetries), retryInterval_(retryInterval), runing_(true)
 {
+    ctx_ = createModbusContext();
+    if (ctx_) {
+        LOG(info) << "Successfully reconnected to Modbus device.";
+    }
+    else {
+        LOG(error) << "Failed to create Modbus context.";
+    }
     reconnectThread_ = std::thread(&ModbusApi::reconnectLoop, this);
 }
 
@@ -51,8 +58,8 @@ bool ModbusApi::readRegisters(uint16_t startAddr, int nbRegs, uint16_t *dest)
     }
 
     if (modbus_read_registers(ctx_, startAddr, nbRegs, dest) == -1) {
-        return false;
         LOG(error) << "Failed to read registers: " + std::string(modbus_strerror(errno));
+        return false;
     }
     return true;
 }
@@ -131,6 +138,15 @@ modbus_t *ModbusApi::createModbusContext()
     return ctx;
 }
 
+
+void ModbusApi::set_debug()
+{
+    if (!ctx_) {
+        LOG(error) << "No valid Modbus context available.";
+        return;
+    }
+    modbus_set_debug(ctx_, TRUE);
+}
 
 void ModbusApi::stop()
 {

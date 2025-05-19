@@ -39,6 +39,7 @@ public:
 
     bool readRegisters(uint16_t startAddr, int nbRegs, uint16_t *dest);
     bool writeRegister(uint16_t addr, uint16_t value);
+    void set_debug();
     void stop();
 
 private:

@@ -47,7 +47,7 @@ struct ConfigDataModbus {
 
     struct data_points_t {
         std::string name;
-        int address;
+        uint16_t address;
         std::string type;
         data_type_e data_type;
         float scale;

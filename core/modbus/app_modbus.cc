@@ -22,6 +22,7 @@
 
 AppModbus::AppModbus() : running_(true), thread_pool_(1024)
 {
+   
 }
 
 AppModbus::~AppModbus()
@@ -78,6 +79,8 @@ bool AppModbus::run()
                     config.rtu.slave_addr, type, 0, config.cmd_interval, config.rtu.port_name,
                     config.rtu.baudrate, config.rtu.parity == "NONE" ? Parity::NONE : Parity::ODD,
                     config.tcp.ip, config.tcp.port, config.max_retries, config.retry_interval);
+
+                    LOG(info) << "config.rtu.slave_addr " << config.rtu.slave_addr;
             } catch (const std::exception &e) {
                 LOG(error) << "Failed to create ModbusApi for device " << deviceId << ": "
                            << e.what();
@@ -181,20 +184,11 @@ RegisterRange AppModbus::findContinuousRegisters(
             next_expected_addr = current_point.address + current_reg_count;
             current_index++;
         } else {
-            break; // 不连续时退出
+            return range; // 如果地址不连续，返回当前范围
         }
     }
-
     return range;
 }
-
-std::vector<ConfigDataModbus::data_points_t> points1 = {
-    {"temp", 40001, "int16", ConfigDataModbus::INT16, 1.0, 0},      // 40001 (1 reg)
-    {"press", 40002, "float32", ConfigDataModbus::FLOAT32, 1.0, 0}, // 40002-40003 (2 regs)
-    {"flow", 40004, "uint16", ConfigDataModbus::UINT16, 1.0, 0},    // 40004 (1 reg)
-    {"other", 40006, "int16", ConfigDataModbus::INT16, 1.0, 0}      // 40006 (1 reg, 不连续)
-};
-
 
 void AppModbus::processContinuousRegisters(
     std::shared_ptr<ModbusApi> modbusApi, const ConfigDataModbus *config)
@@ -210,20 +204,25 @@ void AppModbus::processContinuousRegisters(
             return a.address < b.address;
         });
 
+    LOG(debug) << "device : " << config->device_id <<"  +++++size: " << points.size() << "+++++";
     size_t i = 0;
     while (i < points.size()) {
         RegisterRange range = findContinuousRegisters(points, i);
-        LOG(debug) << "Processing range: " << range.start_addr << " count: " << range.count << " index: " <<  range.end_index;
+        LOG(debug) << "Processing range >> start_addr : " << range.start_addr
+                   << " count: " << range.count << " index: " << range.end_index;
         std::vector<uint16_t> buffer(range.count);
+        uint16_t buffer1[100]{0};
         // 批量读取
-        bool success = modbusApi->readRegisters(range.start_addr, range.count, buffer.data());
+        bool success = modbusApi->readRegisters(0, 4, buffer1);
         if (!success) {
-            LOG(error) << "Failed to read " << " registers from " << range.start_addr << " count: " << range.count;
-            i = range.end_index;
+            LOG(error) << "Failed to read " << " registers from " << range.start_addr
+                       << " count: " << range.count;
             std::this_thread::sleep_for(std::chrono::milliseconds(config->cmd_interval));
+            i = range.end_index + 1; // 确保跳过当前范围
             continue;
         }
         // 处理数据
+
         i = range.end_index + 1;
     }
 }
@@ -235,6 +234,8 @@ void AppModbus::runTask()
         const auto &deviceId = device.first;
         (void)thread_pool_.submit_task([this, deviceId]() {
             auto modbusApi = getDeviceApi(deviceId);
+            /*打开调试 */
+            modbusApi->set_debug();
             auto mConfig = Config::getInstance().getConfig()->getModbus(deviceId);
             if (!modbusApi || !mConfig) {
                 LOG(error) << "Failed to get Modbus API or config for device: " << deviceId;

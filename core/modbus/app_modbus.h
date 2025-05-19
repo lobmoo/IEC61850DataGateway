@@ -26,7 +26,7 @@
 #include "config/config.h"
 
 struct RegisterRange {
-    int start_addr;
+    uint16_t start_addr;
     int count;
     size_t end_index; // 结束的数据点索引
 };
