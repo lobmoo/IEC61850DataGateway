@@ -20,9 +20,10 @@
 #include <thread>
 #include <filesystem>
 
+// #define MODBUS_DEBUG
+
 AppModbus::AppModbus() : running_(true), thread_pool_(1024)
 {
-   
 }
 
 AppModbus::~AppModbus()
@@ -80,7 +81,7 @@ bool AppModbus::run()
                     config.rtu.baudrate, config.rtu.parity == "NONE" ? Parity::NONE : Parity::ODD,
                     config.tcp.ip, config.tcp.port, config.max_retries, config.retry_interval);
 
-                    LOG(info) << "config.rtu.slave_addr " << config.slave_addr;
+                LOG(info) << "config.rtu.slave_addr " << config.slave_addr;
             } catch (const std::exception &e) {
                 LOG(error) << "Failed to create ModbusApi for device " << deviceId << ": "
                            << e.what();
@@ -92,7 +93,7 @@ bool AppModbus::run()
         return false;
     }
 
-    (void)thread_pool_.submit_task([this]() { runTask(); });
+    (void)thread_pool_.detach_task([this]() { runTask(); });
     LOG(info) << "AppModbus initialized successfully.";
     return true;
 }
@@ -204,7 +205,7 @@ void AppModbus::processContinuousRegisters(
             return a.address < b.address;
         });
 
-    LOG(debug) << "device : " << config->device_id <<"  +++++size: " << points.size() << "+++++";
+    LOG(debug) << "device : " << config->device_id << "  +++++size: " << points.size() << "+++++";
     size_t i = 0;
     while (i < points.size()) {
         RegisterRange range = findContinuousRegisters(points, i);
@@ -213,7 +214,7 @@ void AppModbus::processContinuousRegisters(
         std::vector<uint16_t> buffer(range.count);
         uint16_t buffer1[100]{0};
         // 批量读取
-        bool success = modbusApi->readRegisters(0, 4, buffer1);
+        bool success = modbusApi->readRegisters(range.start_addr, range.count, buffer1);
         if (!success) {
             LOG(error) << "Failed to read " << " registers from " << range.start_addr
                        << " count: " << range.count;
@@ -232,10 +233,12 @@ void AppModbus::runTask()
     // 定期执行的任务 读取数据
     for (const auto &device : devices_) {
         const auto &deviceId = device.first;
-        (void)thread_pool_.submit_task([this, deviceId]() {
+        (void)thread_pool_.detach_task([this, deviceId]() {
             auto modbusApi = getDeviceApi(deviceId);
+#ifdef MODBUS_DEBUG
             /*打开调试 */
             modbusApi->set_debug();
+#endif
             auto mConfig = Config::getInstance().getConfig()->getModbus(deviceId);
             if (!modbusApi || !mConfig) {
                 LOG(error) << "Failed to get Modbus API or config for device: " << deviceId;
@@ -257,9 +260,10 @@ void AppModbus::stop()
             modbusApi->stop();
         }
     }
+    
     running_ = false;
     thread_pool_.wait();
-    LOG(info) << "AppModbus::stop";
+    LOG(info) << "AppModbus  stop !";
 }
 
 std::shared_ptr<ModbusApi> AppModbus::getDeviceApi(const std::string &deviceId)

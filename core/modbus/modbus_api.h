@@ -59,7 +59,6 @@ private:
     int maxRetries_;    // 最大重试次数
     int retryInterval_; // 重试间隔（毫秒）
     std::atomic<bool> runing_;
-    std::thread reconnectThread_;
     std::mutex ctxMutex_;
 };
 

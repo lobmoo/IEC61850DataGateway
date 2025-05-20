@@ -34,11 +34,10 @@ ModbusApi::ModbusApi(
     ctx_ = createModbusContext();
     if (ctx_) {
         LOG(info) << "Successfully reconnected to Modbus device.";
-    }
-    else {
+    } else {
         LOG(error) << "Failed to create Modbus context.";
     }
-    reconnectThread_ = std::thread(&ModbusApi::reconnectLoop, this);
+    std::thread(&ModbusApi::reconnectLoop, this).detach();
 }
 
 ModbusApi::~ModbusApi()
@@ -117,16 +116,16 @@ modbus_t *ModbusApi::createModbusContext()
         ctx = modbus_new_rtu(portName_.c_str(), baudrate_, static_cast<char>(parity_), 8, 1);
         LOG(info) << "ModbusType::RTU" << "portName: " << portName_ << "baudrate: " << baudrate_
                   << "parity: " << static_cast<char>(parity_);
-        if (modbus_set_slave(ctx, slaveAddr_) == -1) {
-            LOG(error) << "Failed to set Modbus slave address: " << modbus_strerror(errno);
-            modbus_free(ctx);
-            return nullptr;
-        }
     } else {
         LOG(error) << "ModbusType is not supported.";
     }
 
     if (!ctx) {
+        return nullptr;
+    }
+    if (modbus_set_slave(ctx, slaveAddr_) == -1) {
+        LOG(error) << "Failed to set Modbus slave address: " << modbus_strerror(errno);
+        modbus_free(ctx);
         return nullptr;
     }
 
@@ -137,7 +136,6 @@ modbus_t *ModbusApi::createModbusContext()
     }
     return ctx;
 }
-
 
 void ModbusApi::set_debug()
 {

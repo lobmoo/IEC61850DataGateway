@@ -38,12 +38,13 @@ int main()
 {
     Logger::Instance().setFlushOnLevel(Logger::info);
     Logger::Instance().Init("log/myapp.log", Logger::both, Logger::trace, 60, 5);
-    std::cout << daemon_ << std::endl;
     auto &ptr = Config::getInstance();
     ptr.init("config");
     AppModbus appModbus;
     appModbus.run();
-    while (1)
-        ;
+    while (std::cin.get() != '\n') {
+    }
+    LOG(info) << "Press Enter to stop the program...";
+    appModbus.stop();
     return 0;
 }
