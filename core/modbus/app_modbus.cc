@@ -76,11 +76,11 @@ bool AppModbus::run()
             try {
                 /*¶ª½øÈ¥´ýÃü*/
                 devices_[config.device_id] = std::make_shared<ModbusApi>(
-                    config.rtu.slave_addr, type, 0, config.cmd_interval, config.rtu.port_name,
+                    config.slave_addr, type, 0, config.cmd_interval, config.rtu.port_name,
                     config.rtu.baudrate, config.rtu.parity == "NONE" ? Parity::NONE : Parity::ODD,
                     config.tcp.ip, config.tcp.port, config.max_retries, config.retry_interval);
 
-                    LOG(info) << "config.rtu.slave_addr " << config.rtu.slave_addr;
+                    LOG(info) << "config.rtu.slave_addr " << config.slave_addr;
             } catch (const std::exception &e) {
                 LOG(error) << "Failed to create ModbusApi for device " << deviceId << ": "
                            << e.what();

@@ -103,11 +103,6 @@ bool Config::parseModbusConfig(const YAML::Node &config, std::unique_ptr<ConfigD
             return false; // 校验方式缺失
         }
         modbus.rtu.parity = rtuConfig["parity"].as<std::string>();
-
-        if (!rtuConfig["slave_addr"]) {
-            return false; // 从站地址缺失
-        }
-        modbus.rtu.slave_addr = rtuConfig["slave_addr"].as<int>();
     } else {
         return false; // 如果 RTU 节点不存在，直接返回 false
     }
@@ -118,8 +113,13 @@ bool Config::parseModbusConfig(const YAML::Node &config, std::unique_ptr<ConfigD
     }
     modbus.cmd_interval = modbusConfig["cmd_interval"].as<int>();
 
+    if (!modbusConfig["slave_addr"]) {
+        return false; // 从站地址缺失
+    }
+    modbus.slave_addr = modbusConfig["slave_addr"].as<int>();
+
     if (!modbusConfig["max_retries"]) {
-        return false; // 最大重试次数缺失
+        return false; // 最大重试次数缺失v
     }
     modbus.max_retries = modbusConfig["max_retries"].as<int>();
 
@@ -155,7 +155,8 @@ bool Config::parseModbusConfig(const YAML::Node &config, std::unique_ptr<ConfigD
             dataPoint.name = dataPointNode["name"].as<std::string>();
             dataPoint.address = dataPointNode["address"].as<uint16_t>();
             dataPoint.type = dataPointNode["type"].as<std::string>();
-            dataPoint.data_type = dataPoint.getDataType(dataPointNode["data_type"].as<std::string>());
+            dataPoint.data_type =
+                dataPoint.getDataType(dataPointNode["data_type"].as<std::string>());
             dataPoint.scale = dataPointNode["scale"].as<float>();
             dataPoint.offset = dataPointNode["offset"].as<float>();
 
@@ -168,7 +169,7 @@ bool Config::parseModbusConfig(const YAML::Node &config, std::unique_ptr<ConfigD
 
     // 将解析好的 Modbus 配置存储到数据结构中
     data->modbus[modbus.device_id] = modbus;
-    
+
     // 解析成功
     return true;
 }

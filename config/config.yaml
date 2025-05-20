@@ -2,12 +2,12 @@ ConfigModbus:
   type: "TCP"                 # Modbus 类型（TCP/RTU）
   TCP:
     ip: "127.0.0.1"          # Modbus TCP IP 地址
-    port: 1502                 # Modbus TCP 端口号
+    port: 502                 # Modbus TCP 端口号
   RTU:
     port_name: "/dev/ttyUSB0" # Modbus RTU 串口名称
     baudrate: 9600            # 波特率
     parity: "N"               # 校验位（无校验：N，偶校验：E，奇校验：O）
-    slave_addr: 1             # 从站地址
+  slave_addr: 1             # 从站地址
   cmd_interval: 2000           # 命令发送间隔（毫秒）
   max_retries: 5             # 最大重试次数
   retry_interval: 1000         # 重试间隔（毫秒）
@@ -15,9 +15,17 @@ ConfigModbus:
   byte_order: "big"         # 字节序（大端：big，小端：little）
 
 "data_points": [
+   {
+      "name": "Status",
+      "address": 0x0000,
+      "type": "coil",
+      "data_type": "uint16",
+      "scale": 1,
+      "offset": 0
+    },
     {
       "name": "Temperature",
-      "address": 0x0000,
+      "address": 0x0001,
       "type": "holding_register",
       "data_type": "uint16",
       "scale": 0.1,
@@ -25,14 +33,6 @@ ConfigModbus:
     },
     {
       "name": "Pressu",
-      "address": 0x0003,
-      "type": "input_register",
-      "data_type": "uint16",
-      "scale": 1,
-      "offset": 0
-    },
-    {
-      "name": "Pressure",
       "address": 0x0002,
       "type": "input_register",
       "data_type": "uint16",
@@ -40,19 +40,19 @@ ConfigModbus:
       "offset": 0
     },
     {
-      "name": "Humidity",
-      "address": 0x0001,
-      "type": "holding_register",
+      "name": "Pressure",
+      "address": 0x0003,
+      "type": "input_register",
       "data_type": "uint16",
-      "scale": 0.01,
+      "scale": 1,
       "offset": 0
     },
     {
-      "name": "Status",
-      "address": 0x000e,
-      "type": "coil",
-      "data_type": "float32",
-      "scale": 1,
+      "name": "Humidity",
+      "address": 0x0004,
+      "type": "holding_register",
+      "data_type": "uint16",
+      "scale": 0.01,
       "offset": 0
     }
 ]

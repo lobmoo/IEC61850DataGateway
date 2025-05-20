@@ -42,7 +42,6 @@ struct ConfigDataModbus {
         std::string port_name;
         int baudrate;
         std::string parity;
-        int slave_addr;
     };
 
     struct data_points_t {
@@ -117,6 +116,7 @@ struct ConfigDataModbus {
     std::string Type;
     TCP tcp;
     RTU rtu;
+    int slave_addr;
     int cmd_interval;
     int max_retries;
     int retry_interval;
@@ -130,12 +130,12 @@ struct ConfigDataModbus {
         LOG(info) << "cmd_interval: " << cmd_interval;
         LOG(info) << "max_retries: " << max_retries;
         LOG(info) << "retry_interval: " << retry_interval;
+        LOG(info) << "slave_addr: " << slave_addr;
         LOG(info) << "tcp.ip: " << tcp.ip;
         LOG(info) << "tcp.port: " << tcp.port;
         LOG(info) << "rtu.port_name: " << rtu.port_name;
         LOG(info) << "rtu.baudrate: " << rtu.baudrate;
         LOG(info) << "rtu.parity: " << rtu.parity;
-        LOG(info) << "rtu.slave_addr: " << rtu.slave_addr;
         LOG(info) << "byte_order: " << byte_order;
         for (auto &data_point : data_points) {
             LOG(info) << "data_point.name: " << data_point.name;
