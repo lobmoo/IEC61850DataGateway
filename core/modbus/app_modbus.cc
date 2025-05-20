@@ -191,6 +191,46 @@ RegisterRange AppModbus::findContinuousRegisters(
     return range;
 }
 
+bool AppModbus::processUserData(
+    const std::vector<uint16_t> &dataBuffer,
+    std::vector<ConfigDataModbus::data_points_t> &dataPoints)
+{
+    uint32_t   uOffset = 0; 
+    for (auto point : dataPoints) {
+        switch (point.data_type) {
+            case ConfigDataModbus::INT16: {
+                int16_t value = static_cast<int16_t>(dataBuffer[uOffset + 2]);
+                printf("INT16: %d\n", value);
+            } break;
+            case ConfigDataModbus::UINT16: {
+                uint16_t value = static_cast<uint16_t>(dataBuffer[uOffset + 2]);
+                printf("UINT16: %u\n", value);
+            } break;
+            case ConfigDataModbus::INT32: {
+                int32_t value = static_cast<int32_t>(dataBuffer[uOffset + 4]);
+                printf("INT32: %d\n", value);
+            } break;
+            case ConfigDataModbus::UINT32: {
+                uint32_t value = static_cast<uint32_t>(dataBuffer[uOffset + 4]);
+                printf("UINT32: %u\n", value);
+            } break;
+            case ConfigDataModbus::FLOAT32: {
+                float value = *reinterpret_cast<const float *>(&dataBuffer[uOffset + 4]);
+                printf("FLOAT32: %f\n", value);
+            } break;
+            case ConfigDataModbus::STRING: {
+                // 假设字符串以 null 结尾
+                std::string str(reinterpret_cast<const char *>(&dataBuffer[point.address]));
+                printf("STRING: %s\n", str.c_str());
+            } break;
+            default:
+                break;
+        }
+    }
+
+    return true;
+}
+
 void AppModbus::processContinuousRegisters(
     std::shared_ptr<ModbusApi> modbusApi, const ConfigDataModbus *config)
 {
@@ -201,7 +241,8 @@ void AppModbus::processContinuousRegisters(
     /*地址按照顺序排列，方便拿数据*/
     std::sort(
         points.begin(), points.end(),
-        [](const ConfigDataModbus::data_points_t &a, const ConfigDataModbus::data_points_t &b) {
+        [&points](
+            const ConfigDataModbus::data_points_t &a, const ConfigDataModbus::data_points_t &b) {
             return a.address < b.address;
         });
 
@@ -212,9 +253,8 @@ void AppModbus::processContinuousRegisters(
         LOG(debug) << "Processing range >> start_addr : " << range.start_addr
                    << " count: " << range.count << " index: " << range.end_index;
         std::vector<uint16_t> buffer(range.count);
-        uint16_t buffer1[100]{0};
         // 批量读取
-        bool success = modbusApi->readRegisters(range.start_addr, range.count, buffer1);
+        bool success = modbusApi->readRegisters(range.start_addr, range.count, buffer.data());
         if (!success) {
             LOG(error) << "Failed to read " << " registers from " << range.start_addr
                        << " count: " << range.count;
@@ -222,7 +262,13 @@ void AppModbus::processContinuousRegisters(
             i = range.end_index + 1; // 确保跳过当前范围
             continue;
         }
-        // 处理数据
+
+        for (auto data : buffer) {
+            printf("%d  ", data);
+        }
+        printf("\n");
+
+        /*数据处理*/
 
         i = range.end_index + 1;
     }
@@ -260,7 +306,7 @@ void AppModbus::stop()
             modbusApi->stop();
         }
     }
-    
+
     running_ = false;
     thread_pool_.wait();
     LOG(info) << "AppModbus  stop !";
