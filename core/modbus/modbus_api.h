@@ -44,6 +44,7 @@ public:
 
 private:
     void reconnectLoop();
+    void destroy();
     modbus_t *createModbusContext();
 
     int slaveAddr_;

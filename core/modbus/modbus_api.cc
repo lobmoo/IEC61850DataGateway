@@ -32,7 +32,7 @@ ModbusApi::ModbusApi(
       ctx_(nullptr), maxRetries_(maxRetries), retryInterval_(retryInterval), runing_(true)
 {
     ctx_ = createModbusContext();
-    if (ctx_) {
+    if (NULL != ctx_) {
         LOG(info) << "Successfully reconnected to Modbus device.";
     } else {
         LOG(error) << "Failed to create Modbus context.";
@@ -42,7 +42,7 @@ ModbusApi::ModbusApi(
 
 ModbusApi::~ModbusApi()
 {
-    if (ctx_) {
+    if (NULL != ctx_) {
         modbus_close(ctx_);
         modbus_free(ctx_);
     }
@@ -51,12 +51,13 @@ ModbusApi::~ModbusApi()
 bool ModbusApi::readRegisters(uint16_t startAddr, int nbRegs, uint16_t *dest)
 {
     std::lock_guard<std::mutex> lock(ctxMutex_);
-    if (!ctx_) {
+    if (NULL == ctx_) {
         LOG(error) << "No valid Modbus context available.";
         return false;
     }
 
     if (modbus_read_registers(ctx_, startAddr, nbRegs, dest) == -1) {
+        destroy();
         LOG(error) << "Failed to read registers: " + std::string(modbus_strerror(errno));
         return false;
     }
@@ -66,14 +67,15 @@ bool ModbusApi::readRegisters(uint16_t startAddr, int nbRegs, uint16_t *dest)
 bool ModbusApi::writeRegister(uint16_t addr, uint16_t value)
 {
     std::lock_guard<std::mutex> lock(ctxMutex_);
-    if (!ctx_) {
+    if (NULL == ctx_) {
         LOG(error) << "No valid Modbus context available.";
         return false;
     }
 
     if (modbus_write_register(ctx_, addr, value) == -1) {
-        return false;
+        destroy();
         LOG(error) << "Failed to write registers: " + std::string(modbus_strerror(errno));
+        return false;    
     }
     return true;
 }
@@ -82,14 +84,15 @@ void ModbusApi::reconnectLoop()
 {
     int retries = 0;
     while (runing_) {
-        if (!ctx_) {
+        if (NULL == ctx_) {
+           
             // 检查是否超过最大重连次数
             if (maxRetries_ > 0 && retries >= maxRetries_) {
                 LOG(error) << "Exhausted all reconnection attempts. Modbus device is unavailable.";
                 break; // 超过最大重连次数后退出循环
             }
             ctx_ = createModbusContext();
-            if (ctx_) {
+            if (NULL != ctx_) {
                 LOG(info) << "Successfully reconnected to Modbus device.";
                 retries = 0; // 重置重连计数器
             } else {
@@ -120,18 +123,18 @@ modbus_t *ModbusApi::createModbusContext()
         LOG(error) << "ModbusType is not supported.";
     }
 
-    if (!ctx) {
+    if (NULL == ctx) {
         return nullptr;
     }
     if (modbus_set_slave(ctx, slaveAddr_) == -1) {
         LOG(error) << "Failed to set Modbus slave address: " << modbus_strerror(errno);
-        modbus_free(ctx);
+        destroy();
         return nullptr;
     }
 
     if (modbus_connect(ctx) == -1) {
         LOG(error) << "Failed to connect to Modbus device: " << modbus_strerror(errno);
-        modbus_free(ctx);
+        destroy();
         return nullptr;
     }
     return ctx;
@@ -144,6 +147,16 @@ void ModbusApi::set_debug()
         return;
     }
     modbus_set_debug(ctx_, TRUE);
+}
+
+
+void ModbusApi::destroy()
+{
+    if (NULL != ctx_) {
+        modbus_close(ctx_);
+        modbus_free(ctx_);
+        ctx_ = NULL;
+    }
 }
 
 void ModbusApi::stop()

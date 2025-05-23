@@ -197,7 +197,7 @@ bool AppModbus::processUserData(
     std::vector<ConfigDataModbus::data_points_t> &dataPoints)
 {
     uint32_t   uOffset = 0;
-    DRDSDataRedis redis;
+    DRDSDataRedis redis("127.0.0.1", 6380);
     for (auto point : dataPoints) {
         switch (point.data_type) {
             case ConfigDataModbus::INT16: {
