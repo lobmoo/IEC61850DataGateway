@@ -19,6 +19,7 @@
 
 #include <thread>
 #include <filesystem>
+#include "redis-api/app_redis.h"
 
 // #define MODBUS_DEBUG
 
@@ -195,39 +196,44 @@ bool AppModbus::processUserData(
     const std::vector<uint16_t> &dataBuffer,
     std::vector<ConfigDataModbus::data_points_t> &dataPoints)
 {
-    uint32_t   uOffset = 0; 
+    uint32_t   uOffset = 0;
+    DRDSDataRedis redis;
     for (auto point : dataPoints) {
         switch (point.data_type) {
             case ConfigDataModbus::INT16: {
-                int16_t value = static_cast<int16_t>(dataBuffer[uOffset + 2]);
+                int16_t value = static_cast<int16_t>(dataBuffer[uOffset]);
+                redis.storeInt(point.name, value);
+                uOffset += 2;   //todo 这里不确定传几进制  二进制可以用pipline模式
                 printf("INT16: %d\n", value);
             } break;
             case ConfigDataModbus::UINT16: {
-                uint16_t value = static_cast<uint16_t>(dataBuffer[uOffset + 2]);
+                uint16_t value = static_cast<uint16_t>(dataBuffer[uOffset]);
+                uOffset += 2;
+                redis.storeUInt(point.name, value);
                 printf("UINT16: %u\n", value);
             } break;
             case ConfigDataModbus::INT32: {
-                int32_t value = static_cast<int32_t>(dataBuffer[uOffset + 4]);
+                int32_t value = static_cast<int32_t>(dataBuffer[uOffset]);
+                uOffset += 4;
+                redis.storeDInt(point.name, value);
                 printf("INT32: %d\n", value);
             } break;
             case ConfigDataModbus::UINT32: {
-                uint32_t value = static_cast<uint32_t>(dataBuffer[uOffset + 4]);
+                uint32_t value = static_cast<uint32_t>(dataBuffer[uOffset]);
+                uOffset += 4;
+                redis.storeUDInt(point.name, value);
                 printf("UINT32: %u\n", value);
             } break;
             case ConfigDataModbus::FLOAT32: {
-                float value = *reinterpret_cast<const float *>(&dataBuffer[uOffset + 4]);
+                float value = *reinterpret_cast<const float *>(&dataBuffer[uOffset]);
+                uOffset += 4;
+                redis.storeLReal(point.name, value);
                 printf("FLOAT32: %f\n", value);
-            } break;
-            case ConfigDataModbus::STRING: {
-                // 假设字符串以 null 结尾
-                std::string str(reinterpret_cast<const char *>(&dataBuffer[point.address]));
-                printf("STRING: %s\n", str.c_str());
             } break;
             default:
                 break;
         }
     }
-
     return true;
 }
 
@@ -269,7 +275,12 @@ void AppModbus::processContinuousRegisters(
         printf("\n");
 
         /*数据处理*/
-
+        if(!processUserData(buffer, points))
+        {
+            LOG(error) << "Failed to process user data";
+            i = range.end_index + 1;
+            continue;
+        }
         i = range.end_index + 1;
     }
 }
