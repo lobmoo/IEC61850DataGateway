@@ -33,6 +33,7 @@ set(OBJ_CPP_INCLUDE
     ${CMAKE_SOURCE_DIR}/common
     ${CMAKE_SOURCE_DIR}/thirdparty/BS_thread_pool/${ARCH}/include
     ${CMAKE_SOURCE_DIR}/thirdparty/hiredis/${ARCH}/include
+    ${CMAKE_SOURCE_DIR}/thirdparty/iec61850/${ARCH}/include
     ${CMAKE_SOURCE_DIR}/thirdparty/nlohmann/${ARCH}/include
     ${CMAKE_SOURCE_DIR}/thirdparty/modbus/${ARCH}/include
     ${CMAKE_SOURCE_DIR}/thirdparty/yaml-cpp/${ARCH}/include
@@ -50,6 +51,7 @@ file(GLOB SOURCES_CC_FOR_CPOMMON "${CMAKE_CURRENT_SOURCE_DIR}/../common/config/*
 file(GLOB SOURCES_CC_FOR_MAIN "${CMAKE_CURRENT_SOURCE_DIR}/*.cc")
 file(GLOB SOURCES_CC_FOR_MODBUS "${CMAKE_CURRENT_SOURCE_DIR}/modbus/*.cc")
 file(GLOB SOURCES_CC_FOR_REDIS "${CMAKE_CURRENT_SOURCE_DIR}/redis-api/*.cc")
+file(GLOB SOURCES_CC_FOR_61850 "${CMAKE_CURRENT_SOURCE_DIR}/iec61850/*.cc")
 
 
 message(STATUS "Collected CPP sources: ${SOURCES_CC_FOR_MAIN}")
@@ -61,6 +63,7 @@ set(MAIN_SOURCES ${SOURCES_CC_FOR_MAIN}
 ${SOURCES_CC_FOR_CPOMMON} 
 ${SOURCES_CC_FOR_MODBUS}
 ${SOURCES_CC_FOR_REDIS}
+${SOURCES_CC_FOR_61850}
 )
 
 
@@ -84,6 +87,9 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/common/log/lib/liblog.a
     ${CMAKE_SOURCE_DIR}/thirdparty/modbus/${ARCH}/lib/libmodbus.a
     ${CMAKE_SOURCE_DIR}/thirdparty/hiredis/${ARCH}/lib/libhiredis.a
+    ${CMAKE_SOURCE_DIR}/thirdparty/iec61850/${ARCH}/lib/libiec61850.a
+    ${CMAKE_SOURCE_DIR}/thirdparty/iec61850/${ARCH}/lib/libhal.a
+    ${CMAKE_SOURCE_DIR}/thirdparty/iec61850/${ARCH}/lib/libhal-shared.a
     pthread 
     rt
 )

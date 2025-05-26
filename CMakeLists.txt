@@ -32,10 +32,12 @@ add_subdirectory(common/log)
 add_subdirectory(core)
 add_dependencies(test_exec log)
 
+
 if(COMPILE_SAMPLE)
     add_subdirectory(sample/server_example_simple)
     add_subdirectory(sample/goose_subpub)
     add_subdirectory(sample/cs104_server)
+    add_subdirectory(sample/61850_demo)
 endif()
 
 

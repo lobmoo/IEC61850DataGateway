@@ -45,6 +45,7 @@ ModbusApi::~ModbusApi()
     if (NULL != ctx_) {
         modbus_close(ctx_);
         modbus_free(ctx_);
+        ctx_ = NULL;
     }
 }
 

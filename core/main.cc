@@ -8,6 +8,7 @@
 #include "log/logger.h"
 #include "config/config.h"
 #include "redis-api/app_redis.h"
+#include "iec61850/iec61850Client.h"
 
 const std::string daemon_ = R"(
                 +++++++IEC61850+++++++
