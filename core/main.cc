@@ -8,7 +8,7 @@
 #include "log/logger.h"
 #include "config/config.h"
 #include "redis-api/app_redis.h"
-#include "iec61850/iec61850Client.h"
+#include "iec61850/iec61850ClientManger.h"
 
 const std::string daemon_ = R"(
                 +++++++IEC61850+++++++
@@ -40,12 +40,14 @@ int main()
     Logger::Instance().setFlushOnLevel(Logger::info);
     Logger::Instance().Init("log/myapp.log", Logger::both, Logger::trace, 60, 5);
     auto &ptr = Config::getInstance();
-    ptr.init("config");
-    AppModbus appModbus;
-    appModbus.run();
+    // ptr.init("config");
+    // AppModbus appModbus;
+    // appModbus.run();
+    iec61850ClientManger iec61850Client;
+    iec61850Client.init("/home/wwk/workspaces/IEC61850DataGateway/core/TEMPLATE.icd");
     while (std::cin.get() != '\n') {
     }
     LOG(info) << "Press Enter to stop the program...";
-    appModbus.stop();
+    //appModbus.stop();
     return 0;
 }

@@ -37,6 +37,7 @@ set(OBJ_CPP_INCLUDE
     ${CMAKE_SOURCE_DIR}/thirdparty/nlohmann/${ARCH}/include
     ${CMAKE_SOURCE_DIR}/thirdparty/modbus/${ARCH}/include
     ${CMAKE_SOURCE_DIR}/thirdparty/yaml-cpp/${ARCH}/include
+    ${CMAKE_SOURCE_DIR}/thirdparty/tinyxml/${ARCH}/include
     ${CMAKE_SOURCE_DIR}/core/
 
 )
@@ -90,6 +91,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/thirdparty/iec61850/${ARCH}/lib/libiec61850.a
     ${CMAKE_SOURCE_DIR}/thirdparty/iec61850/${ARCH}/lib/libhal.a
     ${CMAKE_SOURCE_DIR}/thirdparty/iec61850/${ARCH}/lib/libhal-shared.a
+    ${CMAKE_SOURCE_DIR}/thirdparty/tinyxml/${ARCH}/lib/libtinyxml2.a
     pthread 
     rt
 )
