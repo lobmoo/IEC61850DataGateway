@@ -43,8 +43,8 @@ int main()
     // ptr.init("config");
     // AppModbus appModbus;
     // appModbus.run();
-    iec61850ClientManger iec61850Client;
-    iec61850Client.init("/home/wwk/workspaces/IEC61850DataGateway/core/TEMPLATE.icd");
+    iec61850ClientManger iec61850Client("127.0.0.1", 102);
+    iec61850Client.init("/home/wwk/workspaces/IEC61850DataGateway/sample/61850_demo/beagle_demo.iid");
     while (std::cin.get() != '\n') {
     }
     LOG(info) << "Press Enter to stop the program...";

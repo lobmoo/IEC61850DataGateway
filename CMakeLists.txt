@@ -30,7 +30,7 @@ option(COMPILE_SAMPLE "Build example" ON)
 
 add_subdirectory(common/log)
 add_subdirectory(core)
-add_dependencies(test_exec log)
+
 
 
 if(COMPILE_SAMPLE)
