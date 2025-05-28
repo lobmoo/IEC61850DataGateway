@@ -12,6 +12,13 @@ void iec61850ClientManger::init(const char *configFilePath)
     IcdParser parser;
     auto nodes = parser.parse(configFilePath);
     parser.printParseResult(nodes);
+    if (!connect()) {
+        LOG(error) << "Failed to connect to IEC 61850 server at " << ip_ << ":" << port_;
+        return;
+    }
+    LOG(info) << "Connected to IEC 61850 server at " << ip_ << ":" << port_;
+    readAllValues(nodes.nodes);
+    controlObjects(nodes.nodes);
 }
 
 iec61850ClientManger::iec61850ClientManger(std::string ip, uint16_t port)
