@@ -18,16 +18,17 @@ void iec61850ClientManger::init(const char *configFilePath)
         return;
     }
     LOG(info) << "Connected to IEC 61850 server at " << ip_ << ":" << port_;
-    // std::thread([this, nodes]() { readAllValues(nodes.nodes); }).detach();
-    std::string ctlVal = "true";
-    while(1) {
+    std::thread([this, nodes]() { readAllValues(nodes.nodes); }).detach();
+    // std::string ctlVal = "true";
+    // while (1) {
 
-        ctlVal = ctlVal == "true" ? "false" : "true"; // 切换控制值
-        controlObjects({"beagleGenericIO/GGIO1.SPCSO1", "beagleGenericIO/GGIO1.SPCSO2",
-                        "beagleGenericIO/GGIO1.SPCSO3", "beagleGenericIO/GGIO1.DPCSO1"}, ctlVal);
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000)); // 每秒读取一次
-    }
-    
+    //     ctlVal = ctlVal == "true" ? "false" : "true"; // 切换控制值
+    //     controlObjects(
+    //         {"beagleGenericIO/GGIO1.SPCSO1", "beagleGenericIO/GGIO1.SPCSO2",
+    //          "beagleGenericIO/GGIO1.SPCSO3", "beagleGenericIO/GGIO1.DPCSO1"},
+    //         ctlVal);
+    //     std::this_thread::sleep_for(std::chrono::milliseconds(1000)); // 每秒读取一次
+    // }
 }
 
 iec61850ClientManger::iec61850ClientManger(std::string ip, uint16_t port)
@@ -80,22 +81,32 @@ void iec61850ClientManger::readAllValues(const std::vector<DataNode> &nodes)
 
             if (error == IED_ERROR_OK && value) {
                 // 成功读取 处理数据
-
                 //LOG(info) << "Read " << node.path << " value: " << valueStr;
                 if (std::string::npos == node.path.find("GGIO1.SPCSO")) {
                     continue;
                 }
-                MmsType type = MmsValue_getType(value);
-                const char *valueStr = MmsValue_toString(value);
-                LOG(info) << "Read " << node.path << " type: " << type << ", value: " << valueStr;
-                if (NULL == valueStr) {
-                    if (type == MMS_BOOLEAN) {
-                        bool val = MmsValue_getBoolean(value);
-                        LOG(info) << node.path << " boolean value: " << (val ? "true" : "false");
-                    } else {
-                    }
-                }
 
+                MmsType type = MmsValue_getType(value);
+                switch (type) {
+                    case MMS_BOOLEAN: {
+                        bool val = MmsValue_getBoolean(value);
+                        LOG(info) << "Node: " << node.path << " is: " << val;
+                        break;
+                    }
+                    case MMS_INTEGER:
+
+                    case MMS_UNSIGNED:
+
+                    case MMS_FLOAT:
+
+                    case MMS_VISIBLE_STRING:
+
+                    case MMS_STRING:
+                        break;
+                    default:
+                        LOG(info) << "Node: " << node.path << " has an unsupported type: " << type;
+                        break;
+                }
             } else {
                 // 读取失败，记录错误
                 std::string valueStr = value ? MmsValue_toString(value) : "nullptr";
@@ -132,7 +143,8 @@ void iec61850ClientManger::controlObjects(const std::vector<std::string> &nodes,
         switch (type) {
             case MMS_BOOLEAN: {
 
-                bool ctlValBool = ctlVal == "true" || ctlVal == "1" || ctlVal == "True" ||  ctlVal == "TRUE"; // 假设 ctlVal 是字符串 "true" 或 "1"
+                bool ctlValBool = ctlVal == "true" || ctlVal == "1" || ctlVal == "True"
+                                  || ctlVal == "TRUE"; // 假设 ctlVal 是字符串 "true" 或 "1"
                 MmsctlVal = MmsValue_newBoolean(ctlValBool);
                 break;
             }
@@ -151,13 +163,13 @@ void iec61850ClientManger::controlObjects(const std::vector<std::string> &nodes,
             case MMS_BINARY_TIME:
             case MMS_BCD:
             case MMS_OBJ_ID:
-                 break; // 其他类型暂不处理
+                break; // 其他类型暂不处理
             default:
                 break;
         }
         LOG(info) << "Enter control value for " << node << " (type: " << type << ")";
         if (!ControlObjectClient_operate(control, MmsctlVal, 0)) {
-           LOG(error) << "Failed to operate " << node << ": " << error;
+            LOG(error) << "Failed to operate " << node << ": " << error;
         }
         MmsValue_delete(MmsctlVal);
         ControlObjectClient_destroy(control);
