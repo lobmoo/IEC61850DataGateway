@@ -15,7 +15,7 @@ public:
     bool connect();
     void disconnect();
     void readAllValues(const std::vector<DataNode> &nodes);
-    void controlObjects(const std::vector<DataNode> &nodes);
+    void controlObjects(const std::vector<std::string> &nodes, std::string ctlVal);
     void subscribeToReports(const std::vector<DataNode> &nodes);
 
 private:

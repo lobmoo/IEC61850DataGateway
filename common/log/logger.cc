@@ -1,19 +1,18 @@
 /**
- * @file config.cc
+ * @file logger.cc
  * @brief 
  * @author wwk (1162431386@qq.com)
  * @version 1.0
- * @date 2025-03-28
+ * @date 2025-03-25
  * 
- * @copyright Copyright (c) 2025  by  wwk
+ * @copyright Copyright (c) 2025  by  宝信
  * 
  * @par 修改日志:
  * <table>
  * <tr><th>Date       <th>Version <th>Author  <th>Description
- * <tr><td>2025-03-28     <td>1.0     <td>wwk   <td>修改?
+ * <tr><td>2025-03-25     <td>1.0     <td>wwk   <td>修改?
  * </table>
  */
-
 #include "logger.h"
 
 #include "logger_impl.h"
@@ -49,3 +48,30 @@ void Logger::setFlushOnLevel(Logger::severity_level flushOnLevel)
 {
     pImpl->setFlushOnLevel(flushOnLevel);
 }
+
+void Logger::setLogLevel(Logger::severity_level level)
+{
+    pImpl->setLogLevel(level);
+}
+
+void Logger::setLogPattern(const std::string& pattern)
+{
+    pImpl->setLogPattern(pattern);
+}
+
+void Logger::setLogConsoleLevel(Logger::severity_level level)
+{
+    pImpl->setLogConsoleLevel(level);
+}
+
+void Logger::setLogFileLevel(Logger::severity_level level)
+{
+    pImpl->setLogFileLevel(level);
+}
+
+void Logger::setLogBufferSize(size_t size)
+{
+    pImpl->setLogBufferSize(size);
+}
+
+

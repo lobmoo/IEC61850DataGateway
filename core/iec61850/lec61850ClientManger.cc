@@ -19,7 +19,15 @@ void iec61850ClientManger::init(const char *configFilePath)
     }
     LOG(info) << "Connected to IEC 61850 server at " << ip_ << ":" << port_;
     // std::thread([this, nodes]() { readAllValues(nodes.nodes); }).detach();
-    controlObjects(nodes.nodes);
+    std::string ctlVal = "true";
+    while(1) {
+
+        ctlVal = ctlVal == "true" ? "false" : "true"; // 切换控制值
+        controlObjects({"beagleGenericIO/GGIO1.SPCSO1", "beagleGenericIO/GGIO1.SPCSO2",
+                        "beagleGenericIO/GGIO1.SPCSO3", "beagleGenericIO/GGIO1.DPCSO1"}, ctlVal);
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000)); // 每秒读取一次
+    }
+    
 }
 
 iec61850ClientManger::iec61850ClientManger(std::string ip, uint16_t port)
@@ -109,43 +117,50 @@ void iec61850ClientManger::readAllValues(const std::vector<DataNode> &nodes)
     }
 }
 
-void iec61850ClientManger::controlObjects(const std::vector<DataNode> &nodes)
+void iec61850ClientManger::controlObjects(const std::vector<std::string> &nodes, std::string ctlVal)
 {
-    LOG(info) << "\nOperating control objects:";
     IedClientError error;
-    bool ctlValBool = false;
-    while (running_) {
-        ctlValBool = !ctlValBool; // 切换控制值
-        for (const auto &node : nodes) {
-            // 只处理 GGIO 的 CO 节点
-            if (node.fc != "CO" || node.path.find("/GGIO1.") == std::string::npos) {
-                continue;
-            }
-            ControlObjectClient control = ControlObjectClient_create(node.path.c_str(), con_);
-            if (!control) {
-                LOG(error) << "Failed to create control for " << node.path;
-                continue;
-            }
-
-            // MmsValue *mmsVal = nullptr;
-            // if (node.dataType == "Boolean")
-            // {
-            //     mmsVal = MmsValue_newBoolean(ctlValBool);
-            //     LOG(info) << "Operating " << node.path << " with Boolean value: " << (ctlValBool ? "true" : "false");
-            // }
-
-            // LOG(info) << "Enter control value for " << node.path << " (true/false): ";
-            // MmsValue *ctlVal = MmsValue_newBoolean(ctlValBool);
-            // if (!ControlObjectClient_operate(control, ctlVal, 0)) {
-            //     LOG(info) << "Operated control: " << node.path
-            //               << " with value: " << (ctlValBool ? "true" : "false");
-            // } else {
-            //     LOG(error) << "Failed to operate " << node.path << ": " << error;
-            // }
-            // MmsValue_delete(ctlVal);
-            // ControlObjectClient_destroy(control);
+    for (const auto &node : nodes) {
+        // 只处理  CO 节点 todo
+        ControlObjectClient control = ControlObjectClient_create(node.c_str(), con_);
+        if (!control) {
+            LOG(error) << "Failed to create control for " << node;
+            continue;
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000)); // 每秒操作一次
+        MmsType type = ControlObjectClient_getCtlValType(control);
+        MmsValue *MmsctlVal = nullptr;
+        switch (type) {
+            case MMS_BOOLEAN: {
+
+                bool ctlValBool = ctlVal == "true" || ctlVal == "1" || ctlVal == "True" ||  ctlVal == "TRUE"; // 假设 ctlVal 是字符串 "true" 或 "1"
+                MmsctlVal = MmsValue_newBoolean(ctlValBool);
+                break;
+            }
+            case MMS_INTEGER: {
+                int ctlValInt = std::stoi(ctlVal); // 假设 ctlVal 是字符串 "1" 或 "0"
+                MmsctlVal = MmsValue_newInteger(ctlValInt ? 1 : 0);
+                break;
+            }
+            case MMS_UNSIGNED:
+            case MMS_BIT_STRING:
+            case MMS_FLOAT:
+            case MMS_VISIBLE_STRING:
+            case MMS_STRING:
+            case MMS_UTC_TIME:
+            case MMS_OCTET_STRING:
+            case MMS_BINARY_TIME:
+            case MMS_BCD:
+            case MMS_OBJ_ID:
+                 break; // 其他类型暂不处理
+            default:
+                break;
+        }
+        LOG(info) << "Enter control value for " << node << " (type: " << type << ")";
+        if (!ControlObjectClient_operate(control, MmsctlVal, 0)) {
+           LOG(error) << "Failed to operate " << node << ": " << error;
+        }
+        MmsValue_delete(MmsctlVal);
+        ControlObjectClient_destroy(control);
     }
 }
 

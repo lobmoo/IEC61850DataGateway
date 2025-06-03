@@ -38,7 +38,7 @@ const std::string daemon_ = R"(
 int main()
 {
     Logger::Instance().setFlushOnLevel(Logger::info);
-    Logger::Instance().Init("log/myapp.log", Logger::both, Logger::trace, 60, 5);
+    Logger::Instance().Init("log/myapp.log", Logger::console, Logger::trace, 60, 5);
     auto &ptr = Config::getInstance();
     // ptr.init("config");
     // AppModbus appModbus;

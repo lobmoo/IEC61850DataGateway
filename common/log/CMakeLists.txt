@@ -30,6 +30,7 @@ set(INSTALL_INCLUDE_DIR "${CMAKE_INSTALL_PREFIX}/include")
 set(OBJ_CPP_INCLUDE
     ${CMAKE_CURRENT_SOURCE_DIR}/
     ${CMAKE_CURRENT_SOURCE_DIR}/../../thirdparty/spdlog/${ARCH}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../thirdparty/nlohmann/${ARCH}/include
 )
 
 set(SOURCES_CC_FOR_LOG
@@ -37,9 +38,9 @@ set(SOURCES_CC_FOR_LOG
     "${CMAKE_CURRENT_SOURCE_DIR}/logger_impl.cc"
 )
 
-message(STATUS "LOG Collected CXX sources: ${SOURCES_CC_FOR_LOG}")
-message(STATUS "LOG Collected CXX include directories: ${OBJ_CPP_INCLUDE}")
-message(STATUS "LOG CMAKE_INSTALL_PREFIX: ${CMAKE_INSTALL_PREFIX}")
+message(STATUS "Collected CXX sources: ${SOURCES_CC_FOR_LOG}")
+message(STATUS "Collected CXX include directories: ${OBJ_CPP_INCLUDE}")
+message(STATUS "CMAKE_INSTALL_PREFIX: ${CMAKE_INSTALL_PREFIX}")
 
 
 if(BUILD_TESTING)
@@ -54,7 +55,9 @@ target_include_directories(${LIBRARY_OUTPUT_NAME} PRIVATE   ${OBJ_CPP_INCLUDE})
 set_target_properties(${LIBRARY_OUTPUT_NAME} PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/lib
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/lib)
-    
+  
+target_link_libraries(${LIBRARY_OUTPUT_NAME}  PRIVATE  pthread)
+   
 # 头文件拷贝到 include 目录
 file(GLOB LOG_HEADERS "${CMAKE_CURRENT_SOURCE_DIR}/logger.h")
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include)
