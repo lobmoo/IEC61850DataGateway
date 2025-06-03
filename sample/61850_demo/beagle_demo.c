@@ -138,12 +138,14 @@ controlHandlerForBinaryOutput(ControlAction action, void *parameter, MmsValue *v
         if (newState) {
             flashLED(LED4);
             Thread_sleep(3000);
-            switchLED(LED4, 1);
+           // switchLED(LED4, 1);
+             printf("@@SWITCH: %s %i\n", LED4, value);
             dpcState = DBPOS_ON;
         } else {
             flashLED(LED4);
             Thread_sleep(3000);
-            switchLED(LED4, 0);
+           // switchLED(LED4, 0);
+             printf("##SWITCH: %s %i\n", LED4, value);
             dpcState = DBPOS_OFF;
         }
 

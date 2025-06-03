@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <vector>
+#include <atomic>
 #include "icd_parse.h"
 #include <libiec61850/iec61850_client.h>
 
@@ -22,4 +23,5 @@ private:
     uint16_t port_;
     IedConnection con_;
     IedClientError error_;
+    std::atomic<bool> running_; 
 };
