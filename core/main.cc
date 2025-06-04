@@ -4,7 +4,7 @@
 #include <thread>
 #include <vector>
 
-#include "modbus/app_modbus.h"
+#include "modbus/app_modbus_client.h"
 #include "log/logger.h"
 #include "config/config.h"
 #include "redis-api/app_redis.h"

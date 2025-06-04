@@ -14,7 +14,7 @@
  * </table>
  */
 
-#include "app_modbus.h"
+#include "app_modbus_client.h"
 #include "log/logger.h"
 
 #include <thread>
