@@ -1,5 +1,5 @@
 /**
- * @file app_modbus_service.h
+ * @file ice61850Service.cc
  * @brief 
  * @author wwk (1162431386@qq.com)
  * @version 1.0
@@ -13,23 +13,3 @@
  * <tr><td>2025-06-08     <td>1.0     <td>wwk   <td>修改?
  * </table>
  */
-#ifndef APP_MODBUS_SERVICE_H_
-#define APP_MODBUS_SERVICE_H_
-
-class AppModBusService
-{
-private:
-   
-public:
-    AppModBusService();
-    ~AppModBusService();
-};
-
-
-
-
-
-
-
-
-#endif // APP_MODBUS_SERVICE_H_

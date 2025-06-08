@@ -3,16 +3,17 @@
  * @brief 
  * @author wwk (1162431386@qq.com)
  * @version 1.0
- * @date 2025-03-28
+ * @date 2025-06-08
  * 
- * @copyright Copyright (c) 2025  by  wwk
+ * @copyright Copyright (c) 2025  by  wwk : wwk.lobmo@gmail.com
  * 
  * @par 修改日志:
  * <table>
  * <tr><th>Date       <th>Version <th>Author  <th>Description
- * <tr><td>2025-03-28     <td>1.0     <td>wwk   <td>修改?
+ * <tr><td>2025-06-08     <td>1.0     <td>wwk   <td>修改?
  * </table>
  */
+
 #include "config.h"
 #include <filesystem>
 #include <yaml-cpp/yaml.h>
