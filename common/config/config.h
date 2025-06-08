@@ -149,13 +149,68 @@ struct ConfigDataModbus {
     }
 };
 
+struct ConfigDataIEC61850 {
+    std::string device_id;
+    std::string icd_file_path;
+    std::string ip;
+    int port;
+
+    void to_string() const
+    {
+        LOG(info) << "device_id: " << device_id;
+        LOG(info) << "icd_file_path: " << icd_file_path;
+        LOG(info) << "ip: " << ip;
+        LOG(info) << "port: " << port;
+    }
+};
+
+struct ConfigDataIEC104 {
+    std::string device_id;
+    std::string ip;
+    int port;
+    int asdu_address;
+    int ioa_address;
+
+    void to_string() const
+    {
+        LOG(info) << "device_id: " << device_id;
+        LOG(info) << "ip: " << ip;
+        LOG(info) << "port: " << port;
+        LOG(info) << "asdu_address: " << asdu_address;
+        LOG(info) << "ioa_address: " << ioa_address;
+    }
+};
+
+
+
+
 struct ConfigData {
     std::unordered_map<std::string, ConfigDataModbus> modbus;
+    std::unordered_map<std::string, ConfigDataIEC61850> iec61850;
+    std::unordered_map<std::string, ConfigDataIEC104> iec104;
 
     const ConfigDataModbus *getModbus(const std::string &deviceId) const
     {
         auto it = modbus.find(deviceId);
         if (it != modbus.end()) {
+            return &it->second;
+        }
+        return nullptr;
+    }
+
+    const ConfigDataIEC61850 *getIec61850(const std::string &deviceId) const
+    {
+        auto it = iec61850.find(deviceId);
+        if (it != iec61850.end()) {
+            return &it->second;
+        }
+        return nullptr;
+    }
+
+    const ConfigDataIEC104 *getIec104(const std::string &deviceId) const
+    {
+        auto it = iec104.find(deviceId);
+        if (it != iec104.end()) {
             return &it->second;
         }
         return nullptr;
@@ -179,6 +234,8 @@ private:
     Config(const Config &) = delete;
     Config &operator=(const Config &) = delete;
     bool parseModbusConfig(const YAML::Node &config, std::unique_ptr<ConfigData> &data);
+    bool parse61850Config(const YAML::Node &config, std::unique_ptr<ConfigData> &data);
+    bool parse104Config(const YAML::Node &config, std::unique_ptr<ConfigData> &data);
     std::vector<std::string> getDeviceConfigPaths(const std::string &baseConfigPath);
     void loadConfig(const std::string &filename);
 };

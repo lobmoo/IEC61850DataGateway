@@ -53,23 +53,27 @@ const std::string daemon_ = R"(
 
 int main()
 {
+    std::cout << daemon_ << std::endl;
     Logger::Instance().setFlushOnLevel(Logger::info);
     Logger::Instance().Init("log/myapp.log", Logger::console, Logger::trace, 60, 5);
 
     /*初始化配置*/
     auto &ptr = Config::getInstance();
-    if (!ptr.init("config")) {
+    if (!ptr.init("/home/wwk/work/IEC61850DataGateway/config/")) {
         LOG(error) << "Failed to load configuration.";
         return -1;
     }
 
+    // ptr.getConfig()->getModbus()->to_string();
+    auto test = ptr.getConfig()->getIec61850("data1");
+    test->to_string();
     /*初始化redis*/
-    DRDSDataRedis  redisClient;
-    redisClient.setDefaultConnectionInfo("", "127.0.0.1", 6379);
+    DRDSDataRedis::setDefaultConnectionInfo("", "127.0.0.1", 6379);
 
-    /*初始化modbus*/
-    AppModbus appModbus;
-    appModbus.run();
+
+    // /*初始化modbus*/
+    // AppModbus appModbus;
+    // appModbus.run();
 
     // /*初始化61850*/
     // iec61850ClientManger iec61850Client("127.0.0.1", 102);
