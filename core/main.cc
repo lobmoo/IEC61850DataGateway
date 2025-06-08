@@ -75,9 +75,9 @@ int main()
     // AppModbus appModbus;
     // appModbus.run();
 
-    // /*初始化61850*/
-    // iec61850ClientManger iec61850Client("127.0.0.1", 102);
-    // iec61850Client.init("/home/wwk/workspaces/IEC61850DataGateway/sample/61850_demo/beagle_demo.iid");
+    /*初始化61850*/
+    iec61850ClientManger iec61850Client("127.0.0.1", 102);
+    iec61850Client.init("/home/wwk/work/IEC61850DataGateway/config/TEMPLATE.icd");
 
  
     while (std::cin.get() != '\n') {

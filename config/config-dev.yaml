@@ -1,0 +1,81 @@
+config104:
+  communication104: {
+    k: 1,
+    t1_timeout: 15000,
+    t2_timeout: 10000,
+    t3_timeout: 5000,
+    time_tag: true,
+    w: 1
+  }
+  general104: {
+    customer_ip: 127.0.0.1,
+    customer_port: 321,
+    length_message_address: 4,
+    length_public_address: 2,
+    length_reason: 3,
+    name: link1,
+    point_num: 1,
+    public_address: 1,
+    server_ip: 127.0.0.1,
+    server_port: 123
+  }
+config61850:
+  communication61850: {
+    size_data_unit: 1,
+    timeout: 10000
+  }
+  dataMapping: {
+    def_data_structure: type1,
+    parity: parity1
+  }
+  general61850: {
+    device_model: No Model File,
+    name_data_object: data1,
+    server_ip: 127.0.0.1,
+    server_port: 123
+  }
+  other61850: {
+    security_Config: config1
+  }
+configModbus:
+  communicationModbus: {
+    cmd_interval: 100,
+    max_retries: 20000,
+    retry_interval: 3000
+  }
+  generalModbus: {
+    byte_order: big,
+    device_id: 1,
+    type: TCP
+  }
+  rtu: {
+    baudrate: 9600,
+    parity: N,
+    port_name: /dev/ttyUSB0,
+    slave_addr: 1
+  }
+  tcp: {
+    ip: 127.0.0.1,
+    port: 1502
+  }
+data_points:
+- {
+  address: '0x00aa',
+  data_type: '0x00ff',
+  id: 1,
+  name: Temperature,
+  net_port: 0,
+  net_type: Serial,
+  offset: '0xa001',
+  protocol: Modbus
+}
+- {
+  address: '0x0b02',
+  data_type: '0x0012',
+  id: 2,
+  name: Pressure,
+  net_port: 1,
+  net_type: Serial,
+  offset: '0x0002',
+  protocol: '104'
+}

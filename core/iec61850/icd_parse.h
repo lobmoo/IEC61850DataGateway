@@ -18,6 +18,7 @@
 #include <vector>
 #include <iostream>
 #include <set>
+#include "log/logger.h"
 
 using namespace tinyxml2;
 
@@ -63,14 +64,14 @@ public:
 
         // 加载 XML 文件
         if (doc.LoadFile(filePath.c_str()) != XML_SUCCESS) {
-            std::cerr << "Error: Failed to load file: " << filePath << std::endl;
+            LOG(error) << "Error: Failed to load file: " << filePath;
             return result;
         }
 
         // 检查 SCL 根元素
         const XMLElement *root = doc.FirstChildElement("SCL");
         if (!root) {
-            std::cerr << "Error: No SCL root element found" << std::endl;
+            LOG(error) << "Error: No SCL root element found";
             return result;
         }
 
@@ -79,12 +80,12 @@ public:
              ied = ied->NextSiblingElement("IED")) {
             const char *iedName = ied->Attribute("name");
             std::string iedNameStr = iedName ? iedName : "UnknownIED";
-            std::cout << "Processing IED: " << iedNameStr << std::endl;
+            LOG(info) << "Processing IED: " << iedNameStr;
 
             // 检查 Services
             const XMLElement *services = ied->FirstChildElement("Services");
             if (services) {
-                std::cout << "Found Services in IED: " << iedNameStr << std::endl;
+                LOG(info) << "Found Services in IED: " << iedNameStr;
             }
 
             // 遍历 AccessPoint -> Server -> LDevice
@@ -196,13 +197,12 @@ public:
             }
 
             if (!services && !ied->FirstChildElement("AccessPoint")) {
-                std::cerr << "Warning: No AccessPoint or Services in IED: " << iedNameStr
-                          << std::endl;
+                LOG(error) << "Warning: No AccessPoint or Services in IED: " << iedNameStr;
             }
         }
 
         if (result.nodes.empty()) {
-            std::cerr << "Warning: No valid data nodes parsed from file" << std::endl;
+            LOG(error) << "Warning: No valid data nodes parsed from file";
         }
 
         return result;
@@ -210,12 +210,12 @@ public:
 
     void printParseResult(const ParseResult &result)
     {
-        std::cout << "Parsed Data Nodes:" << std::endl;
+        LOG(debug) << "Parsed Data Nodes:";
         for (const auto &node : result.nodes) {
             std::cout << "  Path: " << node.path << ", FC: " << node.fc << std::endl;
         }
 
-        std::cout << "Parsed Data Sets:" << std::endl;
+        LOG(info) << "Parsed Data Sets:";
         for (const auto &ds : result.dataSets) {
             std::cout << "  DataSet: " << ds.name << ", FCDA Paths: ";
             for (const auto &path : ds.fcdaPaths) {
@@ -224,7 +224,7 @@ public:
             std::cout << std::endl;
         }
 
-        std::cout << "Parsed Report Controls:" << std::endl;
+        LOG(info) << "Parsed Report Controls:";
         for (const auto &rpt : result.reports) {
             std::cout << "  ReportControl: " << rpt.name << ", DataSet: " << rpt.datSet
                       << ", Buffered: " << (rpt.buffered ? "Yes" : "No") << std::endl;
