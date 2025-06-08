@@ -55,12 +55,27 @@ int main()
 {
     Logger::Instance().setFlushOnLevel(Logger::info);
     Logger::Instance().Init("log/myapp.log", Logger::console, Logger::trace, 60, 5);
+
+    /*初始化配置*/
     auto &ptr = Config::getInstance();
-    // ptr.init("config");
-    // AppModbus appModbus;
-    // appModbus.run();
-    iec61850ClientManger iec61850Client("127.0.0.1", 102);
-    iec61850Client.init("/home/wwk/workspaces/IEC61850DataGateway/sample/61850_demo/beagle_demo.iid");
+    if (!ptr.init("config")) {
+        LOG(error) << "Failed to load configuration.";
+        return -1;
+    }
+
+    /*初始化redis*/
+    DRDSDataRedis  redisClient;
+    redisClient.setDefaultConnectionInfo("", "127.0.0.1", 6379);
+
+    /*初始化modbus*/
+    AppModbus appModbus;
+    appModbus.run();
+
+    // /*初始化61850*/
+    // iec61850ClientManger iec61850Client("127.0.0.1", 102);
+    // iec61850Client.init("/home/wwk/workspaces/IEC61850DataGateway/sample/61850_demo/beagle_demo.iid");
+
+ 
     while (std::cin.get() != '\n') {
     }
     LOG(info) << "Press Enter to stop the program...";
