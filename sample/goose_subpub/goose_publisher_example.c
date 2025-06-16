@@ -13,7 +13,7 @@
 #include "hal_thread.h"
 
 /* has to be executed as root! */
-/*Í¬Ò»¸öÖ÷»úÓ¦¸ÃÊ¹ÓÃlo¶ø²»ÊÇÍø¿¨*/
+/*åŒä¸€ä¸ªä¸»æœºåº”è¯¥ä½¿ç”¨loè€Œä¸æ˜¯ç½‘å¡*/
 int
 main(int argc, char **argv)
 {

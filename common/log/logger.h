@@ -7,10 +7,10 @@
  * 
  * @copyright Copyright (c) 2025  by  wwk : wwk.lobmo@gmail.com
  * 
- * @par ĞŞ¸ÄÈÕÖ¾:
+ * @par ä¿®æ”¹æ—¥å¿—:
  * <table>
  * <tr><th>Date       <th>Version <th>Author  <th>Description
- * <tr><td>2025-06-08     <td>1.0     <td>wwk   <td>ĞŞ¸Ä?
+ * <tr><td>2025-06-08     <td>1.0     <td>wwk   <td>ä¿®æ”¹?
  * </table>
  */
 #ifndef LOGGER_H
@@ -32,34 +32,34 @@ public:
     ~Logger();
 
     /**
-   * @brief ³õÊ¼»¯ÈÕÖ¾ÏµÍ³
+   * @brief åˆå§‹åŒ–æ—¥å¿—ç³»ç»Ÿ
    *
-   * @param fileName        ÈÕÖ¾ÎÄ¼şÃû£¬Ö§³Ö¾ø¶ÔÂ·¾¶ºÍÏà¶ÔÂ·¾¶
-   * @param type           ÈÕÖ¾ÀàĞÍ£¬¿ÉÑ¡Öµ£ºboth£¨ÎÄ¼şºÍ¿ØÖÆÌ¨£©, console£¨¿ØÖÆÌ¨£©, file£¨ÎÄ¼ş£©
-   * @param level          ÈÕÖ¾¼¶±ğ£¬¿ØÖÆÈÕÖ¾µÄÊä³ö¼¶±ğ
-   * @param maxFileSize    µ¥¸öÈÕÖ¾ÎÄ¼şµÄ×î´ó´óĞ¡£¨µ¥Î»£º×Ö½Ú£©
-   * @param maxBackupIndex ±¸·İÈÕÖ¾ÎÄ¼şµÄ×î´óÊıÁ¿
-   * @param isAsync        ÊÇ·ñÆôÓÃÒì²½ÈÕÖ¾£¬Ä¬ÈÏÎª false£¨Í¬²½Ä£Ê½£©
-   * @return true          ³õÊ¼»¯³É¹¦
-   * @return false         ³õÊ¼»¯Ê§°Ü
+   * @param fileName        æ—¥å¿—æ–‡ä»¶åï¼Œæ”¯æŒç»å¯¹è·¯å¾„å’Œç›¸å¯¹è·¯å¾„
+   * @param type           æ—¥å¿—ç±»å‹ï¼Œå¯é€‰å€¼ï¼šbothï¼ˆæ–‡ä»¶å’Œæ§åˆ¶å°ï¼‰, consoleï¼ˆæ§åˆ¶å°ï¼‰, fileï¼ˆæ–‡ä»¶ï¼‰
+   * @param level          æ—¥å¿—çº§åˆ«ï¼Œæ§åˆ¶æ—¥å¿—çš„è¾“å‡ºçº§åˆ«
+   * @param maxFileSize    å•ä¸ªæ—¥å¿—æ–‡ä»¶çš„æœ€å¤§å¤§å°ï¼ˆå•ä½ï¼šå­—èŠ‚ï¼‰
+   * @param maxBackupIndex å¤‡ä»½æ—¥å¿—æ–‡ä»¶çš„æœ€å¤§æ•°é‡
+   * @param isAsync        æ˜¯å¦å¯ç”¨å¼‚æ­¥æ—¥å¿—ï¼Œé»˜è®¤ä¸º falseï¼ˆåŒæ­¥æ¨¡å¼ï¼‰
+   * @return true          åˆå§‹åŒ–æˆåŠŸ
+   * @return false         åˆå§‹åŒ–å¤±è´¥
    */
     bool Init(const std::string &fileName, LoggerType type, severity_level level, int maxFileSize,
               int maxBackupIndex, bool isAsync = false);
 
     /**
-   * @brief ×¢ÏúÈÕÖ¾ÊµÀı
+   * @brief æ³¨é”€æ—¥å¿—å®ä¾‹
    */
     void Uinit();
 
     /**
-   * @brief Set the Flush Every object  ÉèÖÃÈÕÖ¾Ë¢ÈëÎÄ¼şµÄÆµÂÊ£¬µ¥Î»£ºÃë Ä¬ÈÏ0 Ôò°´Ä¬ÈÏ»úÖÆË¢Èë
-   * @param  flushEvery       ¼ä¸ôÊ±¼ä
+   * @brief Set the Flush Every object  è®¾ç½®æ—¥å¿—åˆ·å…¥æ–‡ä»¶çš„é¢‘ç‡ï¼Œå•ä½ï¼šç§’ é»˜è®¤0 åˆ™æŒ‰é»˜è®¤æœºåˆ¶åˆ·å…¥
+   * @param  flushEvery       é—´éš”æ—¶é—´
    */
     void setFlushEvery(uint32_t flushEvery);
 
     /**
-   * @brief Set the Flush On Level object  ÉèÖÃÈÕÖ¾Á¢¼´Ë¢ÈëÎÄ¼şµÄ¼¶±ğ Ä¬ÈÏÎªerrorÒÔÉÏÁ¢¼´Ë¢Èë 
-   * @param  flushOnLevel     ¼¶±ğ
+   * @brief Set the Flush On Level object  è®¾ç½®æ—¥å¿—ç«‹å³åˆ·å…¥æ–‡ä»¶çš„çº§åˆ« é»˜è®¤ä¸ºerrorä»¥ä¸Šç«‹å³åˆ·å…¥ 
+   * @param  flushOnLevel     çº§åˆ«
    */
     void setFlushOnLevel(Logger::severity_level flushOnLevel);
 

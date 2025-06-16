@@ -7,10 +7,10 @@
  * 
  * @copyright Copyright (c) 2025  by  wwk : wwk.lobmo@gmail.com
  * 
- * @par ĞŞ¸ÄÈÕÖ¾:
+ * @par ä¿®æ”¹æ—¥å¿—:
  * <table>
  * <tr><th>Date       <th>Version <th>Author  <th>Description
- * <tr><td>2025-06-08     <td>1.0     <td>wwk   <td>ĞŞ¸Ä?
+ * <tr><td>2025-06-08     <td>1.0     <td>wwk   <td>ä¿®æ”¹?
  * </table>
  */
 
@@ -57,8 +57,8 @@ private:
     std::string ip_;
     int port_;
     modbus_t *ctx_;
-    int maxRetries_;    // ×î´óÖØÊÔ´ÎÊı
-    int retryInterval_; // ÖØÊÔ¼ä¸ô£¨ºÁÃë£©
+    int maxRetries_;    // æœ€å¤§é‡è¯•æ¬¡æ•°
+    int retryInterval_; // é‡è¯•é—´éš”ï¼ˆæ¯«ç§’ï¼‰
     std::atomic<bool> runing_;
     std::mutex ctxMutex_;
 };

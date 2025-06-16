@@ -7,10 +7,10 @@
  * 
  * @copyright Copyright (c) 2025  by  wwk : wwk.lobmo@gmail.com
  * 
- * @par 修改日志:
+ * @par 淇敼鏃ュ織:
  * <table>
  * <tr><th>Date       <th>Version <th>Author  <th>Description
- * <tr><td>2025-06-08     <td>1.0     <td>wwk   <td>修改?
+ * <tr><td>2025-06-08     <td>1.0     <td>wwk   <td>淇敼?
  * </table>
  */
 #include "logger_impl.h"
@@ -64,7 +64,7 @@ bool Logger::LoggerImpl::Init(std::string fileName, int type, int level, int max
             console_sink_ = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
             file_sink_ = std::make_shared<spdlog::sinks::custom_rotating_file_sink_mt>(
                 fileName, max_file_size, maxBackupIndex);
-            /*按天数轮转记录器  todo*/
+            /*鎸夊ぉ鏁拌疆杞褰曞櫒  todo*/
             // file_sink_ = std::make_shared<spdlog::sinks::daily_file_sink_mt>(fileName, 23, 59);
             console_sink_->set_level(console_level);
             file_sink_->set_level(file_level);

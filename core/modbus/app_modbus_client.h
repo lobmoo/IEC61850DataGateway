@@ -7,10 +7,10 @@
  * 
  * @copyright Copyright (c) 2025  by  wwk : wwk.lobmo@gmail.com
  * 
- * @par 修改日志:
+ * @par 淇敼鏃ュ織:
  * <table>
  * <tr><th>Date       <th>Version <th>Author  <th>Description
- * <tr><td>2025-06-08     <td>1.0     <td>wwk   <td>修改?
+ * <tr><td>2025-06-08     <td>1.0     <td>wwk   <td>淇敼?
  * </table>
  */
 
@@ -28,7 +28,7 @@
 struct RegisterRange {
     uint16_t start_addr;
     int count;
-    size_t end_index; // 结束的数据点索引
+    size_t end_index; // 缁撴潫鐨勬暟鎹偣绱㈠紩
 };
 
 class AppModbus

@@ -7,10 +7,10 @@
  * 
  * @copyright Copyright (c) 2025  by  wwk : wwk.lobmo@gmail.com
  * 
- * @par ĞŞ¸ÄÈÕÖ¾:
+ * @par ä¿®æ”¹æ—¥å¿—:
  * <table>
  * <tr><th>Date       <th>Version <th>Author  <th>Description
- * <tr><td>2025-06-08     <td>1.0     <td>wwk   <td>ĞŞ¸Ä?
+ * <tr><td>2025-06-08     <td>1.0     <td>wwk   <td>ä¿®æ”¹?
  * </table>
  */
 
@@ -42,7 +42,7 @@ bool Config::init(const std::string &BasePath)
         }
     } catch (const std::exception &e) {
         LOG(error) << "Failed to load configuration files: " << e.what();
-        return false; // Èç¹û¼ÓÔØÅäÖÃÎÄ¼şÊ§°Ü£¬·µ»Ø false
+        return false; // å¦‚æœåŠ è½½é…ç½®æ–‡ä»¶å¤±è´¥ï¼Œè¿”å› false
     }
 
     return true;
@@ -50,13 +50,13 @@ bool Config::init(const std::string &BasePath)
 
 void Config::loadConfig(const std::string &filename)
 {
-    std::lock_guard<std::mutex> lock(mutex_); // ±ÜÃâ¶àÏß³Ì·ÃÎÊÊ±Êı¾İ³åÍ»
+    std::lock_guard<std::mutex> lock(mutex_); // é¿å…å¤šçº¿ç¨‹è®¿é—®æ—¶æ•°æ®å†²çª
     YAML::Node config = YAML::LoadFile(filename);
 
     if (!data) {
         data = std::make_unique<ConfigData>();
     }
-    /*Ìí¼ÓÏà¹ØµÄ½âÎöº¯Êı*/
+    /*æ·»åŠ ç›¸å…³çš„è§£æå‡½æ•°*/
     // if (!parseModbusConfig(config, data)) {
     //     LOG(error) << "Failed to parse Modbus config";
     // }
@@ -76,38 +76,38 @@ bool Config::parse61850Config(const YAML::Node &config, std::unique_ptr<ConfigDa
     const YAML::Node &rootIEC61850 = config["config61850"];
     if (!rootIEC61850) {
         LOG(warning) << "IEC61850 config node not found";
-        return true; // Èç¹ûÅäÖÃ½Úµã²»´æÔÚ£¬Ö±½Ó·µ»Ø false
+        return true; // å¦‚æœé…ç½®èŠ‚ç‚¹ä¸å­˜åœ¨ï¼Œç›´æ¥è¿”å› false
     }
 
     const YAML::Node &iec61850Config = rootIEC61850["general61850"];
     if (!iec61850Config) {
         LOG(error) << "IEC61850 general61850 node not found";
-        return false; // Èç¹û general61850 ½Úµã²»´æÔÚ£¬Ö±½Ó·µ»Ø false
+        return false; // å¦‚æœ general61850 èŠ‚ç‚¹ä¸å­˜åœ¨ï¼Œç›´æ¥è¿”å› false
     }
 
     if (!iec61850Config["name_data_object"]) {
         LOG(error) << "IEC61850 device_id not found";
-        return false; // Éè±¸ ID È±Ê§
+        return false; // è®¾å¤‡ ID ç¼ºå¤±
     }
     iec61850.device_id = iec61850Config["name_data_object"].as<std::string>();
     if (!iec61850Config["device_model"]) {
         LOG(error) << "IEC61850 icd_file_path not found";
-        return false; // ICD ÎÄ¼şÂ·¾¶È±Ê§
+        return false; // ICD æ–‡ä»¶è·¯å¾„ç¼ºå¤±
     }
     iec61850.icd_file_path = iec61850Config["device_model"].as<std::string>();
     if (!iec61850Config["server_ip"]) {
         LOG(error) << "IEC61850 IP address not found";
-        return false; // IP µØÖ·È±Ê§
+        return false; // IP åœ°å€ç¼ºå¤±
     }
     iec61850.ip = iec61850Config["server_ip"].as<std::string>();
     if (!iec61850Config["server_port"]) {
         LOG(error) << "IEC61850 port not found";
-        return false; // ¶Ë¿ÚÈ±Ê§
+        return false; // ç«¯å£ç¼ºå¤±
     }
     iec61850.port = iec61850Config["server_port"].as<int>();
-    // ½«½âÎöºÃµÄ IEC61850 ÅäÖÃ´æ´¢µ½Êı¾İ½á¹¹ÖĞ
+    // å°†è§£æå¥½çš„ IEC61850 é…ç½®å­˜å‚¨åˆ°æ•°æ®ç»“æ„ä¸­
 
-    // ½«½âÎöºÃµÄ Modbus ÅäÖÃ´æ´¢µ½Êı¾İ½á¹¹ÖĞ
+    // å°†è§£æå¥½çš„ Modbus é…ç½®å­˜å‚¨åˆ°æ•°æ®ç»“æ„ä¸­
     data->iec61850[iec61850.device_id] = iec61850;
     return true;
 }
@@ -128,7 +128,7 @@ bool Config::parseModbusConfig(const YAML::Node &config, std::unique_ptr<ConfigD
         return true;
     }
 
-    // ½âÎö TCP ÅäÖÃ
+    // è§£æ TCP é…ç½®
     const YAML::Node &tcpConfig = modbusConfig["TCP"];
     if (tcpConfig) {
         if (!tcpConfig["ip"]) {
@@ -139,76 +139,76 @@ bool Config::parseModbusConfig(const YAML::Node &config, std::unique_ptr<ConfigD
 
         if (!tcpConfig["port"]) {
             LOG(error) << "TCP port not found";
-            return false; // ¶Ë¿ÚÈ±Ê§
+            return false; // ç«¯å£ç¼ºå¤±
         }
         modbus.tcp.port = tcpConfig["port"].as<int>();
     } else {
-        return false; // Èç¹û TCP ½Úµã²»´æÔÚ£¬Ö±½Ó·µ»Ø false
+        return false; // å¦‚æœ TCP èŠ‚ç‚¹ä¸å­˜åœ¨ï¼Œç›´æ¥è¿”å› false
     }
 
-    // ½âÎö RTU ÅäÖÃ
+    // è§£æ RTU é…ç½®
     const YAML::Node &rtuConfig = modbusConfig["RTU"];
     if (rtuConfig) {
         if (!rtuConfig["port_name"]) {
             LOG(error) << "RTU port_name not found";
-            return false; // ´®¿ÚÃû³ÆÈ±Ê§
+            return false; // ä¸²å£åç§°ç¼ºå¤±
         }
         modbus.rtu.port_name = rtuConfig["port_name"].as<std::string>();
 
         if (!rtuConfig["baudrate"]) {
             LOG(error) << "RTU baudrate not found";
-            return false; // ²¨ÌØÂÊÈ±Ê§
+            return false; // æ³¢ç‰¹ç‡ç¼ºå¤±
         }
         modbus.rtu.baudrate = rtuConfig["baudrate"].as<int>();
 
         if (!rtuConfig["parity"]) {
             LOG(error) << "RTU parity not found";
-            return false; // Ğ£Ñé·½Ê½È±Ê§
+            return false; // æ ¡éªŒæ–¹å¼ç¼ºå¤±
         }
         modbus.rtu.parity = rtuConfig["parity"].as<std::string>();
     } else {
-        return false; // Èç¹û RTU ½Úµã²»´æÔÚ£¬Ö±½Ó·µ»Ø false
+        return false; // å¦‚æœ RTU èŠ‚ç‚¹ä¸å­˜åœ¨ï¼Œç›´æ¥è¿”å› false
     }
 
-    // ÆäËûÍ¨ÓÃÅäÖÃ
+    // å…¶ä»–é€šç”¨é…ç½®
     if (!modbusConfig["cmd_interval"]) {
         LOG(error) << "Modbus command interval not found";
-        return false; // ÃüÁî¼ä¸ôÈ±Ê§
+        return false; // å‘½ä»¤é—´éš”ç¼ºå¤±
     }
     modbus.cmd_interval = modbusConfig["cmd_interval"].as<int>();
 
     if (!modbusConfig["slave_addr"]) {
         LOG(error) << "Modbus slave address not found";
-        return false; // ´ÓÕ¾µØÖ·È±Ê§
+        return false; // ä»ç«™åœ°å€ç¼ºå¤±
     }
     modbus.slave_addr = modbusConfig["slave_addr"].as<int>();
 
     if (!modbusConfig["max_retries"]) {
         LOG(error) << "Modbus max retries not found";
-        return false; // ×î´óÖØÊÔ´ÎÊıÈ±Ê§v
+        return false; // æœ€å¤§é‡è¯•æ¬¡æ•°ç¼ºå¤±v
     }
     modbus.max_retries = modbusConfig["max_retries"].as<int>();
 
     if (!modbusConfig["retry_interval"]) {
         LOG(error) << "Modbus retry interval not found";
-        return false; // ÖØÊÔ¼ä¸ôÈ±Ê§
+        return false; // é‡è¯•é—´éš”ç¼ºå¤±
     }
     modbus.retry_interval = modbusConfig["retry_interval"].as<int>();
 
     if (!modbusConfig["type"]) {
         LOG(error) << "Modbus type not found";
-        return false; // ÀàĞÍÈ±Ê§
+        return false; // ç±»å‹ç¼ºå¤±
     }
     modbus.Type = modbusConfig["type"].as<std::string>();
 
     if (!modbusConfig["device_id"]) {
         LOG(error) << "Modbus device_id not found";
-        return false; // Éè±¸ ID È±Ê§
+        return false; // è®¾å¤‡ ID ç¼ºå¤±
     }
     modbus.device_id = modbusConfig["device_id"].as<std::string>();
     modbus.byte_order = modbusConfig["byte_order"].as<std::string>();
 
-    // ½âÎö data_points
+    // è§£æ data_points
     const YAML::Node &dataPoints = config["data_points"];
     if (dataPoints && dataPoints.IsSequence()) {
         for (const YAML::Node &dataPointNode : dataPoints) {
@@ -217,10 +217,10 @@ bool Config::parseModbusConfig(const YAML::Node &config, std::unique_ptr<ConfigD
             if (!dataPointNode["name"] || !dataPointNode["address"] || !dataPointNode["type"]
                 || !dataPointNode["data_type"] || !dataPointNode["scale"]
                 || !dataPointNode["offset"]) {
-                return false; // Êı¾İµãµÄÄ³¸ö×Ö¶ÎÈ±Ê§
+                return false; // æ•°æ®ç‚¹çš„æŸä¸ªå­—æ®µç¼ºå¤±
             }
 
-            // ½âÎöÃ¿¸ö data_point µÄÅäÖÃ
+            // è§£ææ¯ä¸ª data_point çš„é…ç½®
             dataPoint.name = dataPointNode["name"].as<std::string>();
             dataPoint.address = dataPointNode["address"].as<uint16_t>();
             dataPoint.type = dataPointNode["type"].as<std::string>();
@@ -229,17 +229,17 @@ bool Config::parseModbusConfig(const YAML::Node &config, std::unique_ptr<ConfigD
             dataPoint.scale = dataPointNode["scale"].as<float>();
             dataPoint.offset = dataPointNode["offset"].as<float>();
 
-            // ´æ´¢Êı¾İµãÅäÖÃ
+            // å­˜å‚¨æ•°æ®ç‚¹é…ç½®
             modbus.data_points.push_back(dataPoint);
         }
     } else {
-        return false; // Èç¹û data_points ½Úµã²»´æÔÚ»ò²»ÊÇĞòÁĞ£¬Ö±½Ó·µ»Ø false
+        return false; // å¦‚æœ data_points èŠ‚ç‚¹ä¸å­˜åœ¨æˆ–ä¸æ˜¯åºåˆ—ï¼Œç›´æ¥è¿”å› false
     }
 
-    // ½«½âÎöºÃµÄ Modbus ÅäÖÃ´æ´¢µ½Êı¾İ½á¹¹ÖĞ
+    // å°†è§£æå¥½çš„ Modbus é…ç½®å­˜å‚¨åˆ°æ•°æ®ç»“æ„ä¸­
     data->modbus[modbus.device_id] = modbus;
 
-    // ½âÎö³É¹¦
+    // è§£ææˆåŠŸ
     return true;
 }
 
@@ -247,9 +247,9 @@ std::vector<std::string> Config::getDeviceConfigPaths(const std::string &baseCon
 {
     std::vector<std::string> configPaths;
     try {
-        // Ê¹ÓÃ C++17 ÎÄ¼şÏµÍ³¿â±éÀúÄ¿Â¼
+        // ä½¿ç”¨ C++17 æ–‡ä»¶ç³»ç»Ÿåº“éå†ç›®å½•
         for (const auto &entry : std::filesystem::directory_iterator(baseConfigPath)) {
-            // ¼ì²éÊÇ·ñÊÇ³£¹æÎÄ¼şÇÒÀ©Õ¹ÃûÎª .yaml
+            // æ£€æŸ¥æ˜¯å¦æ˜¯å¸¸è§„æ–‡ä»¶ä¸”æ‰©å±•åä¸º .yaml
             if (entry.is_regular_file() && entry.path().extension() == ".yaml") {
                 configPaths.push_back(entry.path().string());
             }

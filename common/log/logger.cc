@@ -7,10 +7,10 @@
  * 
  * @copyright Copyright (c) 2025  by  wwk : wwk.lobmo@gmail.com
  * 
- * @par 修改日志:
+ * @par 淇敼鏃ュ織:
  * <table>
  * <tr><th>Date       <th>Version <th>Author  <th>Description
- * <tr><td>2025-06-08     <td>1.0     <td>wwk   <td>修改?
+ * <tr><td>2025-06-08     <td>1.0     <td>wwk   <td>淇敼?
  * </table>
  */
 #include "logger.h"

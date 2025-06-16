@@ -21,12 +21,12 @@ set(CMAKE_CXX_STANDARD 17)
 # set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_COMPILER g++)
 
-# ָ����װ·���ı����������� CMake �������и���
+# 指定安装路径的变量，可以在 CMake 命令行中覆盖
 set(INSTALL_LIB_DIR "${CMAKE_INSTALL_PREFIX}/lib")
 set(INSTALL_INCLUDE_DIR "${CMAKE_INSTALL_PREFIX}/include")
 
 
-#ͷ�ļ�
+#头文件
 set(OBJ_CPP_INCLUDE
     ${CMAKE_CURRENT_SOURCE_DIR}/
     ${CMAKE_CURRENT_SOURCE_DIR}/../../thirdparty/spdlog/${ARCH}/include
@@ -47,7 +47,7 @@ if(BUILD_TESTING)
 endif()
 
 option(BUILD_SHARED_LIBS "Build using shared libraries" OFF)
-# �����⣬����ȡ���� BUILD_SHARED_LIBS
+# 创建库，类型取决于 BUILD_SHARED_LIBS
 
 
 add_library(${LIBRARY_OUTPUT_NAME}   ${SOURCES_CC_FOR_LOG})
@@ -58,7 +58,7 @@ set_target_properties(${LIBRARY_OUTPUT_NAME} PROPERTIES
   
 target_link_libraries(${LIBRARY_OUTPUT_NAME}  PRIVATE  pthread)
    
-# ͷ�ļ������� include Ŀ¼
+# 头文件拷贝到 include 目录
 file(GLOB LOG_HEADERS "${CMAKE_CURRENT_SOURCE_DIR}/logger.h")
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include)
 foreach(header ${LOG_HEADERS})
@@ -68,8 +68,8 @@ endforeach()
     
 install(TARGETS ${LIBRARY_OUTPUT_NAME}
         ARCHIVE DESTINATION ${INSTALL_LIB_DIR}
-        LIBRARY DESTINATION ${INSTALL_LIB_DIR})  # ��̬��Ϳ�ִ���ļ�Ҳ���Է��� bin
-# ��װͷ�ļ��� include Ŀ¼
+        LIBRARY DESTINATION ${INSTALL_LIB_DIR})  # 动态库和可执行文件也可以放在 bin
+# 安装头文件到 include 目录
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/
         DESTINATION ${INSTALL_INCLUDE_DIR}
         FILES_MATCHING PATTERN "*.h")

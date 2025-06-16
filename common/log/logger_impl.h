@@ -7,10 +7,10 @@
  * 
  * @copyright Copyright (c) 2025  by  wwk : wwk.lobmo@gmail.com
  * 
- * @par ĞŞ¸ÄÈÕÖ¾:
+ * @par ä¿®æ”¹æ—¥å¿—:
  * <table>
  * <tr><th>Date       <th>Version <th>Author  <th>Description
- * <tr><td>2025-06-08     <td>1.0     <td>wwk   <td>ĞŞ¸Ä?
+ * <tr><td>2025-06-08     <td>1.0     <td>wwk   <td>ä¿®æ”¹?
  * </table>
  */
 #ifndef LOGGER_IMPL_H
@@ -43,7 +43,7 @@ class Logger::LoggerImpl
             std::ifstream inFile(jsonPath);
             if (!inFile.is_open()) {
                 spdlog::warn("Failed to open config file: {}, using default config", jsonPath);
-                return; // ÎÄ¼ş´ò²»¿ª ¡ú ÓÃÄ¬ÈÏÖµ
+                return; // æ–‡ä»¶æ‰“ä¸å¼€ â†’ ç”¨é»˜è®¤å€¼
             }
 
             json j;
@@ -67,7 +67,7 @@ class Logger::LoggerImpl
 
             } catch (const json::exception &e) {
                 spdlog::warn("Failed to parse JSON config: {}, using default config", e.what());
-                // ²»Òª throw£¬³ÌĞò¼ÌĞøÔËĞĞ
+                // ä¸è¦ throwï¼Œç¨‹åºç»§ç»­è¿è¡Œ
                 return;
             }
         }

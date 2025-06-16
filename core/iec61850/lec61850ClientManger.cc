@@ -7,10 +7,10 @@
  * 
  * @copyright Copyright (c) 2025  by  wwk : wwk.lobmo@gmail.com
  * 
- * @par ĞŞ¸ÄÈÕÖ¾:
+ * @par ä¿®æ”¹æ—¥å¿—:
  * <table>
  * <tr><th>Date       <th>Version <th>Author  <th>Description
- * <tr><td>2025-06-08     <td>1.0     <td>wwk   <td>ĞŞ¸Ä?
+ * <tr><td>2025-06-08     <td>1.0     <td>wwk   <td>ä¿®æ”¹?
  * </table>
  */
 
@@ -38,12 +38,12 @@ void iec61850ClientManger::init(const char *configFilePath)
     // std::string ctlVal = "true";
     // while (1) {
 
-    //     ctlVal = ctlVal == "true" ? "false" : "true"; // ÇĞ»»¿ØÖÆÖµ
+    //     ctlVal = ctlVal == "true" ? "false" : "true"; // åˆ‡æ¢æ§åˆ¶å€¼
     //     controlObjects(
     //         {"beagleGenericIO/GGIO1.SPCSO1", "beagleGenericIO/GGIO1.SPCSO2",
     //          "beagleGenericIO/GGIO1.SPCSO3", "beagleGenericIO/GGIO1.DPCSO1"},
     //         ctlVal);
-    //     std::this_thread::sleep_for(std::chrono::milliseconds(1000)); // Ã¿Ãë¶ÁÈ¡Ò»´Î
+    //     std::this_thread::sleep_for(std::chrono::milliseconds(1000)); // æ¯ç§’è¯»å–ä¸€æ¬¡
     // }
 }
 
@@ -77,7 +77,7 @@ void iec61850ClientManger::readAllValues(const std::vector<DataNode> &nodes)
         LOG(info) << "No nodes to read.";
         return;
     }
-    // ¼ì²éÁ¬½ÓÊÇ·ñÓĞĞ§
+    // æ£€æŸ¥è¿æ¥æ˜¯å¦æœ‰æ•ˆ
     if (!con_) {
         LOG(error) << "Invalid IedConnection.";
         return;
@@ -85,7 +85,7 @@ void iec61850ClientManger::readAllValues(const std::vector<DataNode> &nodes)
 
     while (running_) {
         for (const auto &node : nodes) {
-            // ¹ıÂË£ºÖ»¶Á GGIO1 µÄ ST¡¢CF ½Úµã£¬Ìø¹ı CO
+            // è¿‡æ»¤ï¼šåªè¯» GGIO1 çš„ STã€CF èŠ‚ç‚¹ï¼Œè·³è¿‡ CO
             if (node.path.find("/GGIO1.") == std::string::npos || node.fc == "CO"
                 || (node.fc != "ST" && node.fc != "CF")) {
                 LOG(debug) << "Skipping node: " << node.path << " (FC: " << node.fc << ")";
@@ -96,7 +96,7 @@ void iec61850ClientManger::readAllValues(const std::vector<DataNode> &nodes)
                 con_, &error, node.path.c_str(), FunctionalConstraint_fromString(node.fc.c_str()));
 
             if (error == IED_ERROR_OK && value) {
-                // ³É¹¦¶ÁÈ¡ ´¦ÀíÊı¾İ
+                // æˆåŠŸè¯»å– å¤„ç†æ•°æ®
                 //LOG(info) << "Read " << node.path << " value: " << valueStr;
                 if (std::string::npos == node.path.find("GGIO1.SPCSO")) {
                     continue;
@@ -124,23 +124,23 @@ void iec61850ClientManger::readAllValues(const std::vector<DataNode> &nodes)
                         break;
                 }
             } else {
-                // ¶ÁÈ¡Ê§°Ü£¬¼ÇÂ¼´íÎó
+                // è¯»å–å¤±è´¥ï¼Œè®°å½•é”™è¯¯
                 std::string valueStr = value ? MmsValue_toString(value) : "nullptr";
                 LOG(error) << "Failed to read " << node.path << ": "
                            << IedClientError_toString(error) << ", value: " << valueStr;
                 if (value) {
                     MmsValue_delete(value);
                 }
-                // ¶ÁÈ¡Ê§°ÜÊ±µÈ´ı
+                // è¯»å–å¤±è´¥æ—¶ç­‰å¾…
                 std::this_thread::sleep_for(std::chrono::milliseconds(200));
                 continue;
             }
-            // Í³Ò»ÊÍ·Å value
+            // ç»Ÿä¸€é‡Šæ”¾ value
             if (value) {
                 MmsValue_delete(value);
             }
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000)); // Ã¿Ãë¶ÁÈ¡Ò»´Î
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000)); // æ¯ç§’è¯»å–ä¸€æ¬¡
     }
 }
 
@@ -148,7 +148,7 @@ void iec61850ClientManger::controlObjects(const std::vector<std::string> &nodes,
 {
     IedClientError error;
     for (const auto &node : nodes) {
-        // Ö»´¦Àí  CO ½Úµã todo
+        // åªå¤„ç†  CO èŠ‚ç‚¹ todo
         ControlObjectClient control = ControlObjectClient_create(node.c_str(), con_);
         if (!control) {
             LOG(error) << "Failed to create control for " << node;
@@ -160,12 +160,12 @@ void iec61850ClientManger::controlObjects(const std::vector<std::string> &nodes,
             case MMS_BOOLEAN: {
 
                 bool ctlValBool = ctlVal == "true" || ctlVal == "1" || ctlVal == "True"
-                                  || ctlVal == "TRUE"; // ¼ÙÉè ctlVal ÊÇ×Ö·û´® "true" »ò "1"
+                                  || ctlVal == "TRUE"; // å‡è®¾ ctlVal æ˜¯å­—ç¬¦ä¸² "true" æˆ– "1"
                 MmsctlVal = MmsValue_newBoolean(ctlValBool);
                 break;
             }
             case MMS_INTEGER: {
-                int ctlValInt = std::stoi(ctlVal); // ¼ÙÉè ctlVal ÊÇ×Ö·û´® "1" »ò "0"
+                int ctlValInt = std::stoi(ctlVal); // å‡è®¾ ctlVal æ˜¯å­—ç¬¦ä¸² "1" æˆ– "0"
                 MmsctlVal = MmsValue_newInteger(ctlValInt ? 1 : 0);
                 break;
             }
@@ -179,7 +179,7 @@ void iec61850ClientManger::controlObjects(const std::vector<std::string> &nodes,
             case MMS_BINARY_TIME:
             case MMS_BCD:
             case MMS_OBJ_ID:
-                break; // ÆäËûÀàĞÍÔİ²»´¦Àí
+                break; // å…¶ä»–ç±»å‹æš‚ä¸å¤„ç†
             default:
                 break;
         }

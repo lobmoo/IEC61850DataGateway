@@ -7,10 +7,10 @@
  * 
  * @copyright Copyright (c) 2025  by  wwk : wwk.lobmo@gmail.com
  * 
- * @par ĞŞ¸ÄÈÕÖ¾:
+ * @par ä¿®æ”¹æ—¥å¿—:
  * <table>
  * <tr><th>Date       <th>Version <th>Author  <th>Description
- * <tr><td>2025-06-08     <td>1.0     <td>wwk   <td>ĞŞ¸Ä?
+ * <tr><td>2025-06-08     <td>1.0     <td>wwk   <td>ä¿®æ”¹?
  * </table>
  */
 
@@ -76,7 +76,7 @@ bool AppModbus::run()
             }
 
             try {
-                /*¶ª½øÈ¥´ıÃü*/
+                /*ä¸¢è¿›å»å¾…å‘½*/
                 devices_[config.device_id] = std::make_shared<ModbusApi>(
                     config.slave_addr, type, 0, config.cmd_interval, config.rtu.port_name,
                     config.rtu.baudrate, config.rtu.parity == "NONE" ? Parity::NONE : Parity::ODD,
@@ -125,38 +125,38 @@ RegisterRange AppModbus::findContinuousRegisters(
 {
     RegisterRange range = {0, 0, start_index};
 
-    // ¼ì²éÊäÈëÓĞĞ§ĞÔ
+    // æ£€æŸ¥è¾“å…¥æœ‰æ•ˆæ€§
     if (start_index >= points.size()) {
         return range;
     }
 
-    // ³õÊ¼»¯ÆğÊ¼µã
+    // åˆå§‹åŒ–èµ·å§‹ç‚¹
     const auto &start_point = points[start_index];
     range.start_addr = start_point.address;
-    range.end_index = start_index; // ³õÊ¼»¯ÎªÆğÊ¼Ë÷Òı
+    range.end_index = start_index; // åˆå§‹åŒ–ä¸ºèµ·å§‹ç´¢å¼•
 
-    // ¼ÆËãÆğÊ¼µãµÄ¼Ä´æÆ÷ÊıÁ¿
+    // è®¡ç®—èµ·å§‹ç‚¹çš„å¯„å­˜å™¨æ•°é‡
     switch (start_point.data_type) {
         case ConfigDataModbus::INT16:
         case ConfigDataModbus::UINT16:
-            range.count = 1; // 2×Ö½Ú = 1¼Ä´æÆ÷
+            range.count = 1; // 2å­—èŠ‚ = 1å¯„å­˜å™¨
             break;
         case ConfigDataModbus::INT32:
         case ConfigDataModbus::UINT32:
         case ConfigDataModbus::FLOAT32:
-            range.count = 2; // 4×Ö½Ú = 2¼Ä´æÆ÷
+            range.count = 2; // 4å­—èŠ‚ = 2å¯„å­˜å™¨
             break;
         default:
             range.count = 0;
             return range;
     }
 
-    // Èç¹ûÖ»ÓĞÒ»¸öÊı¾İµã
+    // å¦‚æœåªæœ‰ä¸€ä¸ªæ•°æ®ç‚¹
     if (start_index == points.size() - 1) {
         return range;
     }
 
-    // ¼ì²éºóĞøµÄÁ¬Ğø¼Ä´æÆ÷
+    // æ£€æŸ¥åç»­çš„è¿ç»­å¯„å­˜å™¨
     int next_expected_addr = range.start_addr + range.count;
     size_t current_index = start_index + 1;
 
@@ -164,7 +164,7 @@ RegisterRange AppModbus::findContinuousRegisters(
         const auto &current_point = points[current_index];
         int current_reg_count = 0;
 
-        // ¼ÆËãµ±Ç°Êı¾İµãÕ¼ÓÃµÄ¼Ä´æÆ÷ÊıÁ¿
+        // è®¡ç®—å½“å‰æ•°æ®ç‚¹å ç”¨çš„å¯„å­˜å™¨æ•°é‡
         switch (current_point.data_type) {
             case ConfigDataModbus::INT16:
             case ConfigDataModbus::UINT16:
@@ -176,17 +176,17 @@ RegisterRange AppModbus::findContinuousRegisters(
                 current_reg_count = 2;
                 break;
             default:
-                return range; // Î´ÖªÀàĞÍ£¬½áÊø
+                return range; // æœªçŸ¥ç±»å‹ï¼Œç»“æŸ
         }
 
-        // ¼ì²éµØÖ·ÊÇ·ñÁ¬Ğø
+        // æ£€æŸ¥åœ°å€æ˜¯å¦è¿ç»­
         if (current_point.address == next_expected_addr) {
             range.count += current_reg_count;
-            range.end_index = current_index; // ¸üĞÂÎªµ±Ç°Ë÷Òı
+            range.end_index = current_index; // æ›´æ–°ä¸ºå½“å‰ç´¢å¼•
             next_expected_addr = current_point.address + current_reg_count;
             current_index++;
         } else {
-            return range; // Èç¹ûµØÖ·²»Á¬Ğø£¬·µ»Øµ±Ç°·¶Î§
+            return range; // å¦‚æœåœ°å€ä¸è¿ç»­ï¼Œè¿”å›å½“å‰èŒƒå›´
         }
     }
     return range;
@@ -203,7 +203,7 @@ bool AppModbus::processUserData(
             case ConfigDataModbus::INT16: {
                 int16_t value = static_cast<int16_t>(dataBuffer[uOffset]);
                 redis.storeInt(point.name, value);
-                uOffset += 2;   //todo ÕâÀï²»È·¶¨´«¼¸½øÖÆ  ¶ş½øÖÆ¿ÉÒÔÓÃpiplineÄ£Ê½
+                uOffset += 2;   //todo è¿™é‡Œä¸ç¡®å®šä¼ å‡ è¿›åˆ¶  äºŒè¿›åˆ¶å¯ä»¥ç”¨piplineæ¨¡å¼
                 printf("INT16: %d\n", value);
             } break;
             case ConfigDataModbus::UINT16: {
@@ -246,7 +246,7 @@ void AppModbus::processContinuousRegisters(
 
    
 
-    /*µØÖ·°´ÕÕË³ĞòÅÅÁĞ£¬·½±ãÄÃÊı¾İ*/
+    /*åœ°å€æŒ‰ç…§é¡ºåºæ’åˆ—ï¼Œæ–¹ä¾¿æ‹¿æ•°æ®*/
     std::sort(
         points.begin(), points.end(),
         [&points](
@@ -261,13 +261,13 @@ void AppModbus::processContinuousRegisters(
         LOG(debug) << "Processing range >> start_addr : " << range.start_addr
                    << " count: " << range.count << " index: " << range.end_index;
         std::vector<uint16_t> buffer(range.count);
-        // ÅúÁ¿¶ÁÈ¡
+        // æ‰¹é‡è¯»å–
         bool success = modbusApi->readRegisters(range.start_addr, range.count, buffer.data());
         if (!success) {
             LOG(error) << "Failed to read " << " registers from " << range.start_addr
                        << " count: " << range.count;
             std::this_thread::sleep_for(std::chrono::milliseconds(config->cmd_interval));
-            i = range.end_index + 1; // È·±£Ìø¹ıµ±Ç°·¶Î§
+            i = range.end_index + 1; // ç¡®ä¿è·³è¿‡å½“å‰èŒƒå›´
             continue;
         }
 
@@ -276,7 +276,7 @@ void AppModbus::processContinuousRegisters(
         }
         printf("\n");
 
-        /*Êı¾İ´¦Àí*/
+        /*æ•°æ®å¤„ç†*/
         if(!processUserData(buffer, points))
         {
             LOG(error) << "Failed to process user data";
@@ -289,13 +289,13 @@ void AppModbus::processContinuousRegisters(
 
 void AppModbus::runTask()
 {
-    // ¶¨ÆÚÖ´ĞĞµÄÈÎÎñ ¶ÁÈ¡Êı¾İ
+    // å®šæœŸæ‰§è¡Œçš„ä»»åŠ¡ è¯»å–æ•°æ®
     for (const auto &device : devices_) {
         const auto &deviceId = device.first;
         (void)thread_pool_.detach_task([this, deviceId]() {
             auto modbusApi = getDeviceApi(deviceId);
 #ifdef MODBUS_DEBUG
-            /*´ò¿ªµ÷ÊÔ */
+            /*æ‰“å¼€è°ƒè¯• */
             modbusApi->set_debug();
 #endif
             auto mConfig = Config::getInstance().getConfig()->getModbus(deviceId);

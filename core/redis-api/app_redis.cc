@@ -7,10 +7,10 @@
  *
  * @copyright Copyright (c) 2024  by  wwk
  *
- * @par ĞŞ¸ÄÈÕÖ¾:
+ * @par ä¿®æ”¹æ—¥å¿—:
  * <table>
  * <tr><th>Date       <th>Version <th>Author  <th>Description
- * <tr><td>2024-09-13     <td>1.0     <td>wwk   <td>ĞŞ¸Ä?
+ * <tr><td>2024-09-13     <td>1.0     <td>wwk   <td>ä¿®æ”¹?
  * </table>
  */
 #include "app_redis.h"
@@ -223,7 +223,7 @@ bool DRDSDataRedis::processSetRedisReply(const std::string &key,
   if (redisGetReply(context_, (void **)&reply) == REDIS_OK) {
     if (reply != nullptr) {
       if (reply->type == REDIS_REPLY_STATUS && strcmp(reply->str, "OK") == 0) {
-        // Õı³££¬²»ĞèÒª¶îÍâ²Ù×÷
+        // æ­£å¸¸ï¼Œä¸éœ€è¦é¢å¤–æ“ä½œ
       } else {
         LOG(error) << "Failed to execute SET command for key: " << key
                        << ", error: " << (reply->str ? reply->str : "NULL");
@@ -255,7 +255,7 @@ bool DRDSDataRedis::getBinary(const std::string &key, std::vector<char> &data) {
 
   if (reply->type == REDIS_REPLY_STRING && reply->str != nullptr) {
     data.assign(reply->str,
-                reply->str + reply->len);  // ×Ô¶¯µ÷Õû´óĞ¡²¢¿½±´Êı¾İ
+                reply->str + reply->len);  // è‡ªåŠ¨è°ƒæ•´å¤§å°å¹¶æ‹·è´æ•°æ®
   } else {
     LOG(error) << "Unexpected reply type: " << reply->type;
     FREE_REDIS_REPLY(reply);
@@ -406,7 +406,7 @@ void DRDSDataRedis::initializeUnixConnection(
   checkRedisConnection("Unix socket connection");
 }
 
-// ³õÊ¼»¯ TCP Á¬½Ó
+// åˆå§‹åŒ– TCP è¿æ¥
 void DRDSDataRedis::initializeTcpConnection(const std::string &host, int port) {
   struct timeval timeout;
   timeout.tv_sec = REDIS_TIMEOUT / 1000;
@@ -417,7 +417,7 @@ void DRDSDataRedis::initializeTcpConnection(const std::string &host, int port) {
   checkRedisConnection("TCP connection");
 }
 
-// ¼ì²é Redis Á¬½Ó
+// æ£€æŸ¥ Redis è¿æ¥
 bool DRDSDataRedis::checkRedisConnection(const std::string &connectionType) {
   if (context_ == nullptr || context_->err) {
     LOG(error) << connectionType << " failed: "
@@ -444,7 +444,7 @@ bool DRDSDataRedis::reconnectIfNeeded(int timeout_ms) {
   timeout.tv_sec = timeout_ms / 1000;
   timeout.tv_usec = (timeout_ms % 1000) * 1000;
 
-  // ¸ù¾İµ±Ç°ÅäÖÃÖØĞÂÁ¬½Ó
+  // æ ¹æ®å½“å‰é…ç½®é‡æ–°è¿æ¥
   if (!unix_socket_path_.empty()) {
     context_ = redisConnectUnixWithTimeout(unix_socket_path_.c_str(), timeout);
   } else {

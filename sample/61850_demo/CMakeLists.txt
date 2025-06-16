@@ -7,20 +7,20 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_COMPILER g++)
 
 
-# ╡Иурд©б╪об╣дкЫспт╢нд╪Ч
-# ╪ыиХдЗоёмШтз╡Иурт╢нд╪Чй╠ееЁЩ CMakeFiles д©б╪
+# Ф÷╔Ф┴╬Г⌡╝Е╫∙Д╦▀Г └Ф┴─Ф°┴Ф╨░Ф√┤Д╩╤
+# Е│┤Х╝╬Ф┌╗Е╦▄Ф°⌡Е°╗Ф÷╔Ф┴╬Ф╨░Ф√┤Д╩╤Ф≈╤Ф▌▓И≥╓ CMakeFiles Г⌡╝Е╫∙
 file(GLOB EXAMPLE_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/*.c")
 
 
 message(STATUS "Collected CXX sources: ${EXAMPLE_SOURCES}")
 
 
-# лМ╪с©иж╢ппнд╪Чд©╠Й
+# Ф╥╩Е┼═Е▐╞Ф┴╖Х║▄Ф√┤Д╩╤Г⌡╝Ф═┤
 add_executable(${PROJECT_NAME} ${EXAMPLE_SOURCES})
 
 set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
 
-#м╥нд╪Ч
+#Е╓╢Ф√┤Д╩╤
 set(OBJ_CPP_INCLUDE
     ${CMAKE_CURRENT_SOURCE_DIR}/
 )

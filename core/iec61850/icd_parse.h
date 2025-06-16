@@ -7,10 +7,10 @@
  * 
  * @copyright Copyright (c) 2025  by  wwk : wwk.lobmo@gmail.com
  * 
- * @par ĞŞ¸ÄÈÕÖ¾:
+ * @par ä¿®æ”¹æ—¥å¿—:
  * <table>
  * <tr><th>Date       <th>Version <th>Author  <th>Description
- * <tr><td>2025-06-08     <td>1.0     <td>wwk   <td>ĞŞ¸Ä?
+ * <tr><td>2025-06-08     <td>1.0     <td>wwk   <td>ä¿®æ”¹?
  * </table>
  */
 #include <tinyxml2.h>
@@ -22,26 +22,26 @@
 
 using namespace tinyxml2;
 
-// ¶¨Òå DataNode ½á¹¹£¬´æ´¢Â·¾¶ºÍ¹¦ÄÜÔ¼Êø (FC)
+// å®šä¹‰ DataNode ç»“æ„ï¼Œå­˜å‚¨è·¯å¾„å’ŒåŠŸèƒ½çº¦æŸ (FC)
 struct DataNode {
     std::string
-        path; // Êı¾İÂ·¾¶£¬Èç "TemplateGenericIO/GGIO1.SPCSO1.ctlModel" »ò "TemplateGenericIO/GGIO1.SPCSO1"
-    std::string fc; // ¹¦ÄÜÔ¼Êø£¬Èç "CF", "ST", "CO"
+        path; // æ•°æ®è·¯å¾„ï¼Œå¦‚ "TemplateGenericIO/GGIO1.SPCSO1.ctlModel" æˆ– "TemplateGenericIO/GGIO1.SPCSO1"
+    std::string fc; // åŠŸèƒ½çº¦æŸï¼Œå¦‚ "CF", "ST", "CO"
     DataNode(const std::string &p, const std::string &f) : path(p), fc(f) {}
 };
 
-// ¶¨Òå DataSet ½á¹¹£¬´æ´¢Êı¾İ¼¯ĞÅÏ¢
+// å®šä¹‰ DataSet ç»“æ„ï¼Œå­˜å‚¨æ•°æ®é›†ä¿¡æ¯
 struct DataSetInfo {
     std::string name;
-    std::vector<std::string> fcdaPaths; // Êı¾İ¼¯ÖĞµÄ FCDA Â·¾¶
+    std::vector<std::string> fcdaPaths; // æ•°æ®é›†ä¸­çš„ FCDA è·¯å¾„
     DataSetInfo(const std::string &n) : name(n) {}
 };
 
-// ¶¨Òå ReportControl ½á¹¹£¬´æ´¢±¨¸æ¿ØÖÆ¿éĞÅÏ¢
+// å®šä¹‰ ReportControl ç»“æ„ï¼Œå­˜å‚¨æŠ¥å‘Šæ§åˆ¶å—ä¿¡æ¯
 struct ReportControlInfo {
     std::string name;
-    std::string datSet; // ¹ØÁªµÄÊı¾İ¼¯Ãû³Æ
-    bool buffered;      // ÊÇ·ñÎª»º³å±¨¸æ
+    std::string datSet; // å…³è”çš„æ•°æ®é›†åç§°
+    bool buffered;      // æ˜¯å¦ä¸ºç¼“å†²æŠ¥å‘Š
     ReportControlInfo(const std::string &n, const std::string &ds, bool b)
         : name(n), datSet(ds), buffered(b)
     {
@@ -52,9 +52,9 @@ class IcdParser
 {
 public:
     struct ParseResult {
-        std::vector<DataNode> nodes;            // ËùÓĞÊı¾İ½ÚµãºÍ¿ØÖÆ¶ÔÏó
-        std::vector<DataSetInfo> dataSets;      // Êı¾İ¼¯ĞÅÏ¢
-        std::vector<ReportControlInfo> reports; // ±¨¸æ¿ØÖÆ¿éĞÅÏ¢
+        std::vector<DataNode> nodes;            // æ‰€æœ‰æ•°æ®èŠ‚ç‚¹å’Œæ§åˆ¶å¯¹è±¡
+        std::vector<DataSetInfo> dataSets;      // æ•°æ®é›†ä¿¡æ¯
+        std::vector<ReportControlInfo> reports; // æŠ¥å‘Šæ§åˆ¶å—ä¿¡æ¯
     };
 
     ParseResult parse(const std::string &filePath)
@@ -62,33 +62,33 @@ public:
         ParseResult result;
         XMLDocument doc;
 
-        // ¼ÓÔØ XML ÎÄ¼ş
+        // åŠ è½½ XML æ–‡ä»¶
         if (doc.LoadFile(filePath.c_str()) != XML_SUCCESS) {
             LOG(error) << "Error: Failed to load file: " << filePath;
             return result;
         }
 
-        // ¼ì²é SCL ¸ùÔªËØ
+        // æ£€æŸ¥ SCL æ ¹å…ƒç´ 
         const XMLElement *root = doc.FirstChildElement("SCL");
         if (!root) {
             LOG(error) << "Error: No SCL root element found";
             return result;
         }
 
-        // ±éÀúËùÓĞ IED
+        // éå†æ‰€æœ‰ IED
         for (const XMLElement *ied = root->FirstChildElement("IED"); ied;
              ied = ied->NextSiblingElement("IED")) {
             const char *iedName = ied->Attribute("name");
             std::string iedNameStr = iedName ? iedName : "UnknownIED";
             LOG(info) << "Processing IED: " << iedNameStr;
 
-            // ¼ì²é Services
+            // æ£€æŸ¥ Services
             const XMLElement *services = ied->FirstChildElement("Services");
             if (services) {
                 LOG(info) << "Found Services in IED: " << iedNameStr;
             }
 
-            // ±éÀú AccessPoint -> Server -> LDevice
+            // éå† AccessPoint -> Server -> LDevice
             for (const XMLElement *ap = ied->FirstChildElement("AccessPoint"); ap;
                  ap = ap->NextSiblingElement("AccessPoint")) {
                 const XMLElement *server = ap->FirstChildElement("Server");
@@ -100,7 +100,7 @@ public:
                     const char *ldInst = lDevice->Attribute("inst");
                     std::string ldInstStr = ldInst ? ldInst : "UnknownLDevice";
 
-                    // ±éÀú LN ºÍ LN0
+                    // éå† LN å’Œ LN0
                     for (const XMLElement *ln = lDevice->FirstChildElement(); ln;
                          ln = ln->NextSiblingElement()) {
                         if (strcmp(ln->Name(), "LN") != 0 && strcmp(ln->Name(), "LN0") != 0)
@@ -111,10 +111,10 @@ public:
                         std::string lnClassStr = lnClass ? lnClass : "";
                         std::string instStr = inst ? inst : "";
 
-                        // ¹¹ÔìÂß¼­½ÚµãÒıÓÃ£¨°üº¬ IED Ãû³Æ£©
+                        // æ„é€ é€»è¾‘èŠ‚ç‚¹å¼•ç”¨ï¼ˆåŒ…å« IED åç§°ï¼‰
                         std::string lnRef = iedNameStr + ldInstStr + "/" + lnClassStr + instStr;
 
-                        // ½âÎö DataSet ²¢Ìí¼Ó FCDA ×÷ÎªÊı¾İ½Úµã
+                        // è§£æ DataSet å¹¶æ·»åŠ  FCDA ä½œä¸ºæ•°æ®èŠ‚ç‚¹
                         for (const XMLElement *ds = ln->FirstChildElement("DataSet"); ds;
                              ds = ds->NextSiblingElement("DataSet")) {
                             const char *dsName = ds->Attribute("name");
@@ -140,14 +140,14 @@ public:
                                 }
                                 if (fcdaFc) {
                                     dsInfo.fcdaPaths.push_back(path);
-                                    // Ìí¼Ó FCDA ×÷ÎªÊı¾İ½Úµã£¨²»¼Ó .FC ºó×º£©
+                                    // æ·»åŠ  FCDA ä½œä¸ºæ•°æ®èŠ‚ç‚¹ï¼ˆä¸åŠ  .FC åç¼€ï¼‰
                                     result.nodes.emplace_back(path, fcdaFc);
                                 }
                             }
                             result.dataSets.push_back(dsInfo);
                         }
 
-                        // ½âÎö ReportControl
+                        // è§£æ ReportControl
                         for (const XMLElement *rpt = ln->FirstChildElement("ReportControl"); rpt;
                              rpt = rpt->NextSiblingElement("ReportControl")) {
                             const char *rptName = rpt->Attribute("name");
@@ -158,13 +158,13 @@ public:
                             result.reports.emplace_back(rptNameStr, datSetStr, buffered);
                         }
 
-                        // ½âÎö DOI ºÍ DAI
+                        // è§£æ DOI å’Œ DAI
                         for (const XMLElement *doi = ln->FirstChildElement("DOI"); doi;
                              doi = doi->NextSiblingElement("DOI")) {
                             const char *doName = doi->Attribute("name");
                             std::string doNameStr = doName ? doName : "";
 
-                            // Ìí¼Ó¿ØÖÆ¶ÔÏó£¨DO£©×÷Îª½Úµã£¬FC Îª CO
+                            // æ·»åŠ æ§åˆ¶å¯¹è±¡ï¼ˆDOï¼‰ä½œä¸ºèŠ‚ç‚¹ï¼ŒFC ä¸º CO
                             std::string doPath = lnRef + "." + doNameStr;
                             std::string doTypeId =
                                 getDoTypeId(doc, ln->Attribute("lnType"), doName);
@@ -177,7 +177,7 @@ public:
                                 const char *daName = dai->Attribute("name");
                                 std::string daNameStr = daName ? daName : "";
 
-                                // »ñÈ¡¹¦ÄÜÔ¼Êø (FC) ´Ó DOType
+                                // è·å–åŠŸèƒ½çº¦æŸ (FC) ä» DOType
                                 std::string fc =
                                     getFcFromDoType(doc, ln->Attribute("lnType"), doName, daName);
                                 if (!fc.empty()) {
@@ -187,7 +187,7 @@ public:
                             }
                         }
 
-                        // ´Ó DataTypeTemplates ÌáÈ¡ËùÓĞ DO/DA£¨±¸ÓÃ£©
+                        // ä» DataTypeTemplates æå–æ‰€æœ‰ DO/DAï¼ˆå¤‡ç”¨ï¼‰
                         std::string lnType = ln->Attribute("lnType") ? ln->Attribute("lnType") : "";
                         if (!lnType.empty()) {
                             extractAllDoDa(doc, lnRef, lnType, result.nodes);
@@ -320,29 +320,29 @@ private:
         if (!dtt)
             return;
 
-        // ²éÕÒ LNodeType
+        // æŸ¥æ‰¾ LNodeType
         for (const XMLElement *lnt = dtt->FirstChildElement("LNodeType"); lnt;
              lnt = lnt->NextSiblingElement("LNodeType")) {
             if (strcmp(lnt->Attribute("id"), lnType.c_str()) == 0) {
-                // ±éÀúËùÓĞ DO
+                // éå†æ‰€æœ‰ DO
                 for (const XMLElement *doElem = lnt->FirstChildElement("DO"); doElem;
                      doElem = doElem->NextSiblingElement("DO")) {
                     const char *doName = doElem->Attribute("name");
                     std::string doNameStr = doName ? doName : "";
                     const char *doTypeId = doElem->Attribute("type");
 
-                    // ¼ì²éÊÇ·ñÊÇ¿ØÖÆ¶ÔÏó
+                    // æ£€æŸ¥æ˜¯å¦æ˜¯æ§åˆ¶å¯¹è±¡
                     if (doTypeId && isControlObject(doc, doTypeId)) {
                         std::string doPath = lnRef + "." + doNameStr;
                         nodes.emplace_back(doPath, "CO");
                     }
 
-                    // ²éÕÒ DOType
+                    // æŸ¥æ‰¾ DOType
                     if (doTypeId) {
                         for (const XMLElement *doType = dtt->FirstChildElement("DOType"); doType;
                              doType = doType->NextSiblingElement("DOType")) {
                             if (strcmp(doType->Attribute("id"), doTypeId) == 0) {
-                                // ±éÀúËùÓĞ DA
+                                // éå†æ‰€æœ‰ DA
                                 for (const XMLElement *da = doType->FirstChildElement("DA"); da;
                                      da = da->NextSiblingElement("DA")) {
                                     const char *daName = da->Attribute("name");

@@ -2,22 +2,22 @@ cmake_minimum_required(VERSION 3.16)
 
 project(goose_subpub_exec  LANGUAGES C)
 
-# ╡Иурд©б╪об╣дкЫспт╢нд╪Ч
-# ╪ыиХдЗоёмШтз╡Иурт╢нд╪Чй╠ееЁЩ CMakeFiles д©б╪
+# Ф÷╔Ф┴╬Г⌡╝Е╫∙Д╦▀Г └Ф┴─Ф°┴Ф╨░Ф√┤Д╩╤
+# Е│┤Х╝╬Ф┌╗Е╦▄Ф°⌡Е°╗Ф÷╔Ф┴╬Ф╨░Ф√┤Д╩╤Ф≈╤Ф▌▓И≥╓ CMakeFiles Г⌡╝Е╫∙
 file(GLOB PUB_EXAMPLE_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/goose_publisher_example.c")
 file(GLOB SUB_EXAMPLE_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/goose_subscriber_example.c")
 
 message(STATUS "Collected CXX sources: ${EXAMPLE_SOURCES}")
 
 
-# лМ╪с©иж╢ппнд╪Чд©╠Й
+# Ф╥╩Е┼═Е▐╞Ф┴╖Х║▄Ф√┤Д╩╤Г⌡╝Ф═┤
 add_executable(goose_pub_exec ${PUB_EXAMPLE_SOURCES})
 add_executable(goose_sub_exec ${SUB_EXAMPLE_SOURCES})
 # set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
 set_target_properties(goose_pub_exec PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
 set_target_properties(goose_sub_exec PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
 
-#м╥нд╪Ч
+#Е╓╢Ф√┤Д╩╤
 set(OBJ_CPP_INCLUDE
     ${CMAKE_CURRENT_SOURCE_DIR}/goose_subpub
 )

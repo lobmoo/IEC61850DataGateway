@@ -7,10 +7,10 @@
  *
  * @copyright Copyright (c) 2024  by  wwk
  *
- * @par ĞŞ¸ÄÈÕÖ¾:µ¥ÀıÄ£Ê½£¬redisÊı¾İ¿â²Ù×÷½Ó¿Ú
- * ¸Ã½Ó¿Ú²»ÊÇÏß³Ì°²È«µÄ£¬²»½¨ÒéÔÚ¶àÏß³Ì»·¾³ÏÂÊ¹ÓÃµ¥¸öÊµÀı²Ù×÷ <table>
+ * @par ä¿®æ”¹æ—¥å¿—:å•ä¾‹æ¨¡å¼ï¼Œredisæ•°æ®åº“æ“ä½œæ¥å£
+ * è¯¥æ¥å£ä¸æ˜¯çº¿ç¨‹å®‰å…¨çš„ï¼Œä¸å»ºè®®åœ¨å¤šçº¿ç¨‹ç¯å¢ƒä¸‹ä½¿ç”¨å•ä¸ªå®ä¾‹æ“ä½œ <table>
  * <tr><th>Date       <th>Version <th>Author  <th>Description
- * <tr><td>2024-09-13     <td>1.0     <td>wwk   <td>ĞŞ¸Ä?
+ * <tr><td>2024-09-13     <td>1.0     <td>wwk   <td>ä¿®æ”¹?
  * </table>
  */
 #pragma once
@@ -46,8 +46,8 @@ struct RedisPiplineResult {
 };
 
 struct RedisCommandSetError {
-  std::string key;           // ´íÎóµÄ¼ü
-  std::string error_message; // ´íÎóµÄÔ­Òò
+  std::string key;           // é”™è¯¯çš„é”®
+  std::string error_message; // é”™è¯¯çš„åŸå› 
 };
 
 class DRDSDataRedis {
@@ -103,20 +103,20 @@ public:
   redisContext *getConnection();
 
 private:
-  redisContext *context_ = nullptr;   /*redis ¾ä±úÖ¸Õë*/
-  std::string unix_socket_path_ = ""; // µ±Ç°Ê¹ÓÃµÄ Unix socket Â·¾¶
-  std::string host_ = "";             // µ±Ç°Ê¹ÓÃµÄÖ÷»úÃû
-  int port_;                          // µ±Ç°Ê¹ÓÃµÄ¶Ë¿ÚºÅ
+  redisContext *context_ = nullptr;   /*redis å¥æŸ„æŒ‡é’ˆ*/
+  std::string unix_socket_path_ = ""; // å½“å‰ä½¿ç”¨çš„ Unix socket è·¯å¾„
+  std::string host_ = "";             // å½“å‰ä½¿ç”¨çš„ä¸»æœºå
+  int port_;                          // å½“å‰ä½¿ç”¨çš„ç«¯å£å·
 
-  static std::string default_unix_socket_path; // Ä¬ÈÏ Unix socket Â·¾¶
-  static std::string default_host;             // Ä¬ÈÏÖ÷»úÃû
-  static int default_port;                     // Ä¬ÈÏ¶Ë¿ÚºÅ
+  static std::string default_unix_socket_path; // é»˜è®¤ Unix socket è·¯å¾„
+  static std::string default_host;             // é»˜è®¤ä¸»æœºå
+  static int default_port;                     // é»˜è®¤ç«¯å£å·
 
 private:
   void initializeUnixConnection(const std::string &unix_socket_path);
-  // ³õÊ¼»¯ TCP Á¬½Ó
+  // åˆå§‹åŒ– TCP è¿æ¥
   void initializeTcpConnection(const std::string &host, int port);
-  // ¼ì²é Redis Á¬½Ó
+  // æ£€æŸ¥ Redis è¿æ¥
   bool checkRedisConnection(const std::string &connectionType);
 
   bool reconnectIfNeeded(int timeout_ms = 3000);
