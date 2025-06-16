@@ -34,11 +34,17 @@ Config &Config::getInstance()
 
 bool Config::init(const std::string &BasePath)
 {
-    std::vector<std::string> configPaths = getDeviceConfigPaths(BasePath);
-    for (const auto &configPath : configPaths) {
-        loadConfig(configPath);
-        LOG(debug) << "Loaded config: " << configPath;
+    try {
+        std::vector<std::string> configPaths = getDeviceConfigPaths(BasePath);
+        for (const auto &configPath : configPaths) {
+            loadConfig(configPath);
+            LOG(debug) << "Loaded config: " << configPath;
+        }
+    } catch (const std::exception &e) {
+        LOG(error) << "Failed to load configuration files: " << e.what();
+        return false; // 如果加载配置文件失败，返回 false
     }
+
     return true;
 }
 
@@ -101,7 +107,7 @@ bool Config::parse61850Config(const YAML::Node &config, std::unique_ptr<ConfigDa
     iec61850.port = iec61850Config["server_port"].as<int>();
     // 将解析好的 IEC61850 配置存储到数据结构中
 
-     // 将解析好的 Modbus 配置存储到数据结构中
+    // 将解析好的 Modbus 配置存储到数据结构中
     data->iec61850[iec61850.device_id] = iec61850;
     return true;
 }
@@ -250,6 +256,7 @@ std::vector<std::string> Config::getDeviceConfigPaths(const std::string &baseCon
         }
     } catch (const std::filesystem::filesystem_error &e) {
         LOG(error) << "File system error: " << e.what();
+        throw std::runtime_error("Failed to get device config paths");
     }
     return configPaths;
 }
