@@ -27,7 +27,13 @@
 #include <vector>
 #include "iec61850/model/static_model.h"
 #include "log/logger.h"
+
 extern IedModel iedModel; // 静态模型，定义在 static_model.c 中
+
+
+static bool automaticOperationMode = true;
+static ClientConnection controllingClient = NULL;
+
 
 // 构造函数
 ice61850Service::ice61850Service()
@@ -39,6 +45,24 @@ ice61850Service::ice61850Service()
 ice61850Service::~ice61850Service()
 {
     stopServer();
+}
+
+static void connectionIndicationHandler(
+    IedServer server, ClientConnection connection, bool connected, void *parameter)
+{
+    const char *clientAddress = ClientConnection_getPeerAddress(connection);
+
+    if (connected) {
+        LOG(info) << "BeagleDemoServer: new client connection from %s\n", clientAddress;
+    } else {
+        LOG(info) << "BeagleDemoServer: client connection from %s closed\n", clientAddress;
+
+        if (controllingClient == connection) {
+            LOG(info) << "Controlling client has closed connection -> switch to automatic operation mode";
+            controllingClient = NULL;
+            automaticOperationMode = true;
+        }
+    }
 }
 
 // 初始化服务端，使用静态模型
@@ -60,6 +84,8 @@ bool ice61850Service::init(
             LOG(error) << "Failed to create IEC 61850 server";
             return false;
         }
+        IedServer_setConnectionIndicationHandler(
+            server_, (IedConnectionIndicationHandler)connectionIndicationHandler, NULL);
 
         // 初始化GOOSE发布者
         initializeGoose(interface, specificGooseInterface, specificGcbName);
@@ -69,7 +95,7 @@ bool ice61850Service::init(
 
         // 初始化本地数据存储
         initializeLocalData();
-
+            
         LOG(info) << "IEC 61850 server initialized successfully";
         return true;
     } catch (const std::exception &e) {
@@ -110,8 +136,8 @@ void ice61850Service::initializeSvPublisher(const std::string &interface)
     // 创建SV发布者
     svPublisher_ = SVPublisher_create(NULL, interface.c_str());
     if (svPublisher_) {
-        SVPublisher_ASDU asdu1 = SVPublisher_addASDU(svPublisher_, "svpub1", NULL, 1);
-        SVPublisher_setupComplete(svPublisher_);
+        // SVPublisher_ASDU asdu1 = SVPublisher_addASDU(svPublisher_, "svpub1", NULL, 1);
+        // SVPublisher_setupComplete(svPublisher_);
         LOG(info) << "SV publisher initialized" << std::endl;
     } else {
         LOG(error) << "Failed to create SV publisher" << std::endl;
@@ -139,7 +165,7 @@ bool ice61850Service::startServer(uint16_t port)
         LOG(info) << "IEC 61850 server started" << std::endl;
 
         // 启动数据更新线程
-        dataUpdateThread_ = std::thread(&ice61850Service::updateDataLoop, this);// 启动SV发布线程
+        dataUpdateThread_ = std::thread(&ice61850Service::updateDataLoop, this); // 启动SV发布线程
         svThread_ = std::thread(&ice61850Service::publishSvLoop, this);
         return true;
     } catch (const std::exception &e) {
@@ -186,7 +212,6 @@ void ice61850Service::updateServerData()
 {
     IedServer_lockDataModel(server_);
 
-    
     IedServer_unlockDataModel(server_);
 }
 
@@ -194,7 +219,6 @@ void ice61850Service::updateServerData()
 void ice61850Service::publishGooseLoop()
 {
     while (running_) {
-        
     }
 }
 
@@ -202,7 +226,7 @@ void ice61850Service::publishGooseLoop()
 void ice61850Service::publishSvLoop()
 {
     while (running_) {
-       
+
         std::this_thread::sleep_for(std::chrono::microseconds(125)); // 8kHz采样率
     }
 }

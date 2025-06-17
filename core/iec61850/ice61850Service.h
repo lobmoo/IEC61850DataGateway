@@ -23,7 +23,6 @@
 #include <map>
 #include <thread>
 
-
 class ice61850Service
 {
 public:
@@ -44,6 +43,8 @@ private:
     bool running_;
     std::thread dataUpdateThread_;
     std::thread svThread_;
+
+private:
     void initializeLocalData();
     void initializeGoose(
         const std::string &interface, const std::string &specificGooseInterface,
