@@ -14,7 +14,7 @@
 
 cmake_minimum_required(VERSION 3.16)
 
-project(test_exec  LANGUAGES  CXX)
+project(test_exec  LANGUAGES  C CXX)
 
 set(LIBRARY_OUTPUT_NAME  test)
 set(CMAKE_CXX_STANDARD 17) 
@@ -52,12 +52,13 @@ file(GLOB SOURCES_CC_FOR_CPOMMON "${CMAKE_CURRENT_SOURCE_DIR}/../common/config/*
 file(GLOB SOURCES_CC_FOR_MAIN "${CMAKE_CURRENT_SOURCE_DIR}/*.cc")
 file(GLOB SOURCES_CC_FOR_MODBUS "${CMAKE_CURRENT_SOURCE_DIR}/modbus/*.cc")
 file(GLOB SOURCES_CC_FOR_REDIS "${CMAKE_CURRENT_SOURCE_DIR}/redis-api/*.cc")
-file(GLOB SOURCES_CC_FOR_61850 "${CMAKE_CURRENT_SOURCE_DIR}/iec61850/*.cc")
+file(GLOB SOURCES_CC_FOR_61850 "${CMAKE_CURRENT_SOURCE_DIR}/iec61850/*.cc"
+                               "${CMAKE_CURRENT_SOURCE_DIR}/iec61850/model/*.c")
 
 
 message(STATUS "Collected CPP sources: ${SOURCES_CC_FOR_MAIN}")
 message(STATUS "CMAKE_INSTALL_PREFIX: ${CMAKE_INSTALL_PREFIX}")
-message(STATUS "OBJ_CPP_INCLUDE: ${OBJ_CPP_INCLUDE}")
+message(STATUS "++++++++++++++++++OBJ_CPP_INCLUDE: ${SOURCES_CC_FOR_61850}")
 
 # 合并所有查找到的文件列表
 set(MAIN_SOURCES ${SOURCES_CC_FOR_MAIN}

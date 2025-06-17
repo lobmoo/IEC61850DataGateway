@@ -23,35 +23,40 @@
 #include <map>
 #include <thread>
 
+
 class ice61850Service
 {
 public:
     ice61850Service();
     ~ice61850Service();
 
-    bool initialize(const std::string &ipAddress, int port, const std::string &interface);
-    bool startServer();
+    bool init(
+        const std::string &interface, const std::string &specificGooseInterface = "",
+        const std::string &specificGcbName = "gcbAnalogValues");
+    bool startServer(uint16_t port = 102); // 默认端口为102
     void stopServer();
     void setLocalData(const std::string &dataRef, float value, Quality quality);
 
 private:
-    IedServer server;
-    IedModel *model;
-    GoosePublisher goosePublisher;
-    SvPublisher svPublisher;
-    bool running;
-    std::thread dataUpdateThread;
-    std::thread gooseThread;
-    std::thread svThread;
-    std::map<std::string, LocalData> localDataStore;
-
+    IedServer server_;
+    IedModel *model_;
+    SVPublisher svPublisher_;
+    bool running_;
+    std::thread dataUpdateThread_;
+    std::thread svThread_;
     void initializeLocalData();
-    void initializeGoosePublisher(const std::string &interface);
+    void initializeGoose(
+        const std::string &interface, const std::string &specificGooseInterface,
+        const std::string &specificGcbName);
     void initializeSvPublisher(const std::string &interface);
-    void updateDataLoop();
     void updateServerData();
-    void publishGooseLoop();
+    void updateDataLoop();
     void publishSvLoop();
+    void publishGooseLoop();
+    // 控制处理程序
+    static ControlAction controlHandlerForBinaryOutput(void *parameter, MmsValue *value, bool test);
+    // GOOSE 事件处理程序
+    static void goCbEventHandler(MmsGooseControlBlock goCb, void *parameter);
 };
 
 struct LocalData {
