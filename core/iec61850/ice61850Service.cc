@@ -14,11 +14,11 @@
  * </table>
  */
 #include "ice61850Service.h"
-#include <libiec61850/iec61850_server.h>
-#include <libiec61850/iec61850_model.h>
-#include <libiec61850/iec61850_common.h>
-#include <libiec61850/goose_publisher.h>
-#include <libiec61850/sv_publisher.h>
+#include <iec61850_server.h>
+#include <iec61850_model.h>
+#include <iec61850_common.h>
+#include <goose_publisher.h>
+#include <sv_publisher.h>
 #include <string>
 #include <map>
 #include <thread>

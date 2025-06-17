@@ -16,9 +16,9 @@
 #ifndef ICE61850SERVICE_H_
 #define ICE61850SERVICE_H_
 
-#include <libiec61850/iec61850_server.h>
-#include <libiec61850/goose_publisher.h>
-#include <libiec61850/sv_publisher.h>
+#include <iec61850_server.h>
+#include <goose_publisher.h>
+#include <sv_publisher.h>
 #include <string>
 #include <map>
 #include <thread>
