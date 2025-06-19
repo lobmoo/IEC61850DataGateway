@@ -13,6 +13,9 @@
  * <tr><td>2025-06-08     <td>1.0     <td>wwk   <td>修改?
  * </table>
  */
+#ifndef ICD_PARSE_H_
+#define ICD_PARSE_H_
+
 #include <tinyxml2.h>
 #include <string>
 #include <vector>
@@ -361,3 +364,5 @@ private:
         }
     }
 };
+
+#endif // ICD_PARSE_H_
