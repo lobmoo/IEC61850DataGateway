@@ -86,7 +86,7 @@ void iec61850ClientManger::readAllValues(const std::vector<DataNode> &nodes)
     while (running_) {
         for (const auto &node : nodes) {
             // 过滤：只读 GGIO1 的 ST、CF 节点，跳过 CO
-            if (node.path.find("/GGIO1.") == std::string::npos || node.fc == "CO"
+            if (node.path.find("/SPTR01.") == std::string::npos || node.fc == "CO"
                 || (node.fc != "ST" && node.fc != "CF")) {
                 LOG(debug) << "Skipping node: " << node.path << " (FC: " << node.fc << ")";
                 continue;
@@ -98,27 +98,44 @@ void iec61850ClientManger::readAllValues(const std::vector<DataNode> &nodes)
             if (error == IED_ERROR_OK && value) {
                 // 成功读取 处理数据
                 //LOG(info) << "Read " << node.path << " value: " << valueStr;
-                if (std::string::npos == node.path.find("GGIO1.SPCSO")) {
+                if (std::string::npos == node.path.find("/SPTR01.")) {
                     continue;
                 }
 
                 MmsType type = MmsValue_getType(value);
-                switch (type) {
+                 switch (type) {
                     case MMS_BOOLEAN: {
                         bool val = MmsValue_getBoolean(value);
                         LOG(info) << "Node: " << node.path << " is: " << val;
                         break;
                     }
-                    case MMS_INTEGER:
+                    case MMS_INTEGER: {
+                        int64_t val = MmsValue_toInt64(value);
+                        LOG(info) << "Node: " << node.path << " is: " << val;
+                        break;
+                    }
+                    case MMS_UNSIGNED: {
+                        uint64_t val = MmsValue_toInt64(value);
+                        LOG(info) << "Node: " << node.path << " is: " << val;
+                        break;
+                    }
 
-                    case MMS_UNSIGNED:
-
-                    case MMS_FLOAT:
-
-                    case MMS_VISIBLE_STRING:
+                    case MMS_FLOAT: {
+                        double val = MmsValue_toDouble(value);
+                        LOG(info) << "Node: " << node.path << " is: " << val;
+                        break;
+                    }
 
                     case MMS_STRING:
+                    case MMS_VISIBLE_STRING: {
+                        const char *str = MmsValue_toString(value);
+                        if (str) {
+                            LOG(info) << "Node: " << node.path << " is: " << str;
+                        } else {
+                            LOG(info) << "Node: " << node.path << " has an empty string value.";
+                        }
                         break;
+                    }
                     default:
                         LOG(info) << "Node: " << node.path << " has an unsupported type: " << type;
                         break;
