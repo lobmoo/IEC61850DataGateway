@@ -33,7 +33,8 @@ public:
     void readAllValues(const std::vector<DataNode> &nodes);
     void controlObjects(const std::vector<std::string> &nodes, std::string ctlVal);
     void subscribeToReports(const std::vector<DataNode> &nodes);
-
+private:
+   void logMmsNodeValue(const std::string& path, MmsValue* value);
 private:
     std::string ip_;
     uint16_t port_;

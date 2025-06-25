@@ -154,6 +154,7 @@ void iec61850ClientManger::readAllValues(const std::vector<DataNode> &nodes)
                         LOG(info) << "Node: " << node.path << " is binary time: " << buf << " ("
                                   << timestamp << " ms)";
                         break;
+
                     }
 
                     default:
@@ -178,6 +179,96 @@ void iec61850ClientManger::readAllValues(const std::vector<DataNode> &nodes)
             }
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(1000)); // 每秒读取一次
+    }
+}
+
+
+void iec61850ClientManger::logMmsNodeValue(const std::string& path, MmsValue* value) {
+    if (value == nullptr) {
+        LOG(warning) << "Node: " << path << " has null value.";
+        return;
+    }
+
+    MmsType type = MmsValue_getType(value);
+
+    switch (type) {
+        case MMS_BOOLEAN: {
+            bool val = MmsValue_getBoolean(value);
+            LOG(info) << "Node: " << path << " is: " << val;
+            break;
+        }
+
+        case MMS_INTEGER: {
+            int64_t val = MmsValue_toInt64(value);
+            LOG(info) << "Node: " << path << " is: " << val;
+            break;
+        }
+
+        case MMS_UNSIGNED: {
+            uint64_t val = MmsValue_toInt64(value);
+            LOG(info) << "Node: " << path << " is: " << val;
+            break;
+        }
+
+        case MMS_FLOAT: {
+            double val = MmsValue_toDouble(value);
+            LOG(info) << "Node: " << path << " is: " << val;
+            break;
+        }
+
+        case MMS_STRING:
+        case MMS_VISIBLE_STRING: {
+            const char* str = MmsValue_toString(value);
+            if (str) {
+                LOG(info) << "Node: " << path << " is: " << str;
+            } else {
+                LOG(info) << "Node: " << path << " has an empty string.";
+            }
+            break;
+        }
+
+        case MMS_BIT_STRING: {
+            int size = MmsValue_getBitStringSize(value);
+            std::string bitStr;
+            for (int i = 0; i < size; ++i) {
+                bitStr += MmsValue_getBitStringBit(value, i) ? '1' : '0';
+            }
+            LOG(info) << "Node: " << path << " is bit string: " << bitStr;
+            break;
+        }
+
+        case MMS_UTC_TIME: {
+            uint32_t timestamp = MmsValue_toUnixTimestamp(value); // ms since epoch
+            std::time_t time = timestamp / 1000;
+            char buf[64];
+            std::strftime(buf, sizeof(buf), "%F %T", std::localtime(&time));
+            LOG(info) << "Node: " << path << " is UTC time: " << buf << " (" << timestamp << " ms)";
+            break;
+        }
+
+        // case MMS_STRUCTURE: {
+        //     int size = MmsValue_getSize(value);
+        //     for (int i = 0; i < size; ++i) {
+        //         MmsValue* child = MmsValue_getElement(value, i);
+        //         std::string childPath = path + "." + std::to_string(i);
+        //         logMmsNodeValue(childPath, child);
+        //     }
+        //     break;
+        // }
+
+        case MMS_ARRAY: {
+            int size = MmsValue_getArraySize(value);
+            for (int i = 0; i < size; ++i) {
+                MmsValue* elem = MmsValue_getElement(value, i);
+                std::string elemPath = path + "[" + std::to_string(i) + "]";
+                logMmsNodeValue(elemPath, elem);
+            }
+            break;
+        }
+
+        default:
+            LOG(warning) << "Node: " << path << " has unsupported type: " << type;
+            break;
     }
 }
 
