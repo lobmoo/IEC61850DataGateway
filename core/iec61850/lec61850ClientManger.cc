@@ -103,7 +103,7 @@ void iec61850ClientManger::readAllValues(const std::vector<DataNode> &nodes)
                 }
 
                 MmsType type = MmsValue_getType(value);
-                 switch (type) {
+                switch (type) {
                     case MMS_BOOLEAN: {
                         bool val = MmsValue_getBoolean(value);
                         LOG(info) << "Node: " << node.path << " is: " << val;
@@ -136,6 +136,26 @@ void iec61850ClientManger::readAllValues(const std::vector<DataNode> &nodes)
                         }
                         break;
                     }
+                    case MMS_BIT_STRING: {
+                        int size = MmsValue_getBitStringSize(value);
+                        std::string bitStr;
+                        for (int i = 0; i < size; ++i) {
+                            bitStr += MmsValue_getBitStringBit(value, i) ? '1' : '0';
+                        }
+                        LOG(info) << "Node: " << node.path << " is bit string: " << bitStr;
+                        break;
+                    }
+
+                    case MMS_UTC_TIME: {
+                        uint32_t timestamp = MmsValue_toUnixTimestamp(value); // 通常是 ms
+                        std::time_t time = timestamp / 1000;
+                        char buf[64];
+                        std::strftime(buf, sizeof(buf), "%F %T", std::localtime(&time));
+                        LOG(info) << "Node: " << node.path << " is binary time: " << buf << " ("
+                                  << timestamp << " ms)";
+                        break;
+                    }
+
                     default:
                         LOG(info) << "Node: " << node.path << " has an unsupported type: " << type;
                         break;
