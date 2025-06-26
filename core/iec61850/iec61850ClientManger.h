@@ -33,12 +33,16 @@ public:
     void readAllValues(const std::vector<DataNode> &nodes);
     void controlObjects(const std::vector<std::string> &nodes, std::string ctlVal);
     void subscribeToReports(const std::vector<DataNode> &nodes);
+
 private:
-   void logMmsNodeValue(const std::string& path, MmsValue* value);
+    void parseStructure(
+        MmsValue *value, const std::string &nodePath, MmsVariableSpecification *varSpec = nullptr,
+        int indentLevel = 0, const std::string &targetPath = "");
+
 private:
     std::string ip_;
     uint16_t port_;
     IedConnection con_;
     IedClientError error_;
-    std::atomic<bool> running_; 
+    std::atomic<bool> running_;
 };

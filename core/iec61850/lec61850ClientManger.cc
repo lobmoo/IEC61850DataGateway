@@ -154,7 +154,11 @@ void iec61850ClientManger::readAllValues(const std::vector<DataNode> &nodes)
                         LOG(info) << "Node: " << node.path << " is binary time: " << buf << " ("
                                   << timestamp << " ms)";
                         break;
+                    }
 
+                    case MMS_STRUCTURE: {
+                        parseStructure(value, node.path);
+                        break;
                     }
 
                     default:
@@ -182,95 +186,159 @@ void iec61850ClientManger::readAllValues(const std::vector<DataNode> &nodes)
     }
 }
 
-
-void iec61850ClientManger::logMmsNodeValue(const std::string& path, MmsValue* value) {
-    if (value == nullptr) {
-        LOG(warning) << "Node: " << path << " has null value.";
+void iec61850ClientManger::parseStructure(
+    MmsValue *value, const std::string &nodePath, MmsVariableSpecification *varSpec,
+    int indentLevel, const std::string &targetPath)
+{
+    if (!value || MmsValue_getType(value) != MMS_STRUCTURE) {
+        LOG(error) << "Invalid structure for node: " << nodePath;
         return;
     }
 
-    MmsType type = MmsValue_getType(value);
+    std::string indent(indentLevel * 2, ' '); // 用于日志缩进
 
-    switch (type) {
-        case MMS_BOOLEAN: {
-            bool val = MmsValue_getBoolean(value);
-            LOG(info) << "Node: " << path << " is: " << val;
-            break;
-        }
-
-        case MMS_INTEGER: {
-            int64_t val = MmsValue_toInt64(value);
-            LOG(info) << "Node: " << path << " is: " << val;
-            break;
-        }
-
-        case MMS_UNSIGNED: {
-            uint64_t val = MmsValue_toInt64(value);
-            LOG(info) << "Node: " << path << " is: " << val;
-            break;
-        }
-
-        case MMS_FLOAT: {
-            double val = MmsValue_toDouble(value);
-            LOG(info) << "Node: " << path << " is: " << val;
-            break;
-        }
-
-        case MMS_STRING:
-        case MMS_VISIBLE_STRING: {
-            const char* str = MmsValue_toString(value);
-            if (str) {
-                LOG(info) << "Node: " << path << " is: " << str;
-            } else {
-                LOG(info) << "Node: " << path << " has an empty string.";
+    // 如果指定了目标路径，使用 MmsValue_getSubElement
+    if (!targetPath.empty() && varSpec) {
+        MmsValue *subValue =
+            MmsValue_getSubElement(value, varSpec, const_cast<char *>(targetPath.c_str()));
+        if (subValue) {
+            std::string subPath = nodePath + "." + targetPath;
+            MmsType subType = MmsValue_getType(subValue);
+            switch (subType) {
+                case MMS_BOOLEAN: {
+                    bool val = MmsValue_getBoolean(subValue);
+                    LOG(info) << indent << "Node: " << subPath
+                              << " is: " << (val ? "true" : "false");
+                    break;
+                }
+                case MMS_INTEGER: {
+                    int64_t val = MmsValue_toInt64(subValue);
+                    LOG(info) << indent << "Node: " << subPath << " is: " << val;
+                    break;
+                }
+                case MMS_UNSIGNED: {
+                    uint64_t val = MmsValue_toInt64(subValue);
+                    LOG(info) << indent << "Node: " << subPath << " is: " << val;
+                    break;
+                }
+                case MMS_FLOAT: {
+                    double val = MmsValue_toDouble(subValue);
+                    LOG(info) << indent << "Node: " << subPath << " is: " << val;
+                    break;
+                }
+                case MMS_STRING:
+                case MMS_VISIBLE_STRING: {
+                    const char *str = MmsValue_toString(subValue);
+                    LOG(info) << indent << "Node: " << subPath
+                              << " is: " << (str ? str : "empty string");
+                    break;
+                }
+                case MMS_BIT_STRING: {
+                    int size = MmsValue_getBitStringSize(subValue);
+                    std::string bitStr;
+                    for (int j = 0; j < size; ++j) {
+                        bitStr += MmsValue_getBitStringBit(subValue, j) ? '1' : '0';
+                    }
+                    LOG(info) << indent << "Node: " << subPath << " is bit string: " << bitStr;
+                    break;
+                }
+                case MMS_UTC_TIME: {
+                    uint32_t timestamp = MmsValue_toUnixTimestamp(subValue);
+                    std::time_t time = timestamp / 1000;
+                    char buf[64];
+                    std::strftime(buf, sizeof(buf), "%F %T", std::localtime(&time));
+                    LOG(info) << indent << "Node: " << subPath << " is binary time: " << buf << " ("
+                              << timestamp << " ms)";
+                    break;
+                }
+                case MMS_STRUCTURE: {
+                    LOG(info) << indent << "Node: " << subPath << " is a structure";
+                    parseStructure(subValue, subPath, nullptr, indentLevel + 1); // 递归解析子结构体
+                    break;
+                }
+                default:
+                    LOG(info) << indent << "Node: " << subPath
+                              << " has an unsupported type: " << subType;
+                    break;
             }
-            break;
+            MmsValue_delete(subValue);
+        } else {
+            LOG(error) << indent << "Failed to get sub-element: " << targetPath
+                       << " for node: " << nodePath;
         }
+        return;
+    }
 
-        case MMS_BIT_STRING: {
-            int size = MmsValue_getBitStringSize(value);
-            std::string bitStr;
-            for (int i = 0; i < size; ++i) {
-                bitStr += MmsValue_getBitStringBit(value, i) ? '1' : '0';
+    // 遍历所有子元素
+    int numSubValues = MmsValue_getArraySize(value);
+    for (int i = 0; i < numSubValues; ++i) {
+        MmsValue *subValue = MmsValue_getElement(value, i);
+        if (!subValue) {
+            LOG(error) << indent << "Failed to get sub-element " << i << " for node: " << nodePath;
+            continue;
+        }
+        std::string subPath = nodePath + "[" + std::to_string(i) + "]";
+        MmsType subType = MmsValue_getType(subValue);
+        switch (subType) {
+            case MMS_BOOLEAN: {
+                bool val = MmsValue_getBoolean(subValue);
+                LOG(info) << indent << "Node: " << subPath << " is: " << (val ? "true" : "false");
+                break;
             }
-            LOG(info) << "Node: " << path << " is bit string: " << bitStr;
-            break;
-        }
-
-        case MMS_UTC_TIME: {
-            uint32_t timestamp = MmsValue_toUnixTimestamp(value); // ms since epoch
-            std::time_t time = timestamp / 1000;
-            char buf[64];
-            std::strftime(buf, sizeof(buf), "%F %T", std::localtime(&time));
-            LOG(info) << "Node: " << path << " is UTC time: " << buf << " (" << timestamp << " ms)";
-            break;
-        }
-
-        // case MMS_STRUCTURE: {
-        //     int size = MmsValue_getSize(value);
-        //     for (int i = 0; i < size; ++i) {
-        //         MmsValue* child = MmsValue_getElement(value, i);
-        //         std::string childPath = path + "." + std::to_string(i);
-        //         logMmsNodeValue(childPath, child);
-        //     }
-        //     break;
-        // }
-
-        case MMS_ARRAY: {
-            int size = MmsValue_getArraySize(value);
-            for (int i = 0; i < size; ++i) {
-                MmsValue* elem = MmsValue_getElement(value, i);
-                std::string elemPath = path + "[" + std::to_string(i) + "]";
-                logMmsNodeValue(elemPath, elem);
+            case MMS_INTEGER: {
+                int64_t val = MmsValue_toInt64(subValue);
+                LOG(info) << indent << "Node: " << subPath << " is: " << val;
+                break;
             }
-            break;
+            case MMS_UNSIGNED: {
+                uint64_t val = MmsValue_toInt64(subValue);
+                LOG(info) << indent << "Node: " << subPath << " is: " << val;
+                break;
+            }
+            case MMS_FLOAT: {
+                double val = MmsValue_toDouble(subValue);
+                LOG(info) << indent << "Node: " << subPath << " is: " << val;
+                break;
+            }
+            case MMS_STRING:
+            case MMS_VISIBLE_STRING: {
+                const char *str = MmsValue_toString(subValue);
+                LOG(info) << indent << "Node: " << subPath
+                          << " is: " << (str ? str : "empty string");
+                break;
+            }
+            case MMS_BIT_STRING: {
+                int size = MmsValue_getBitStringSize(subValue);
+                std::string bitStr;
+                for (int j = 0; j < size; ++j) {
+                    bitStr += MmsValue_getBitStringBit(subValue, j) ? '1' : '0';
+                }
+                LOG(info) << indent << "Node: " << subPath << " is bit string: " << bitStr;
+                break;
+            }
+            case MMS_UTC_TIME: {
+                uint32_t timestamp = MmsValue_toUnixTimestamp(subValue);
+                std::time_t time = timestamp / 1000;
+                char buf[64];
+                std::strftime(buf, sizeof(buf), "%F %T", std::localtime(&time));
+                LOG(info) << indent << "Node: " << subPath << " is binary time: " << buf << " ("
+                          << timestamp << " ms)";
+                break;
+            }
+            case MMS_STRUCTURE: {
+                LOG(info) << indent << "Node: " << subPath << " is a structure";
+                parseStructure(subValue, subPath, nullptr, indentLevel + 1);
+                break;
+            }
+            default:
+                LOG(info) << indent << "Node: " << subPath
+                          << " has an unsupported type: " << subType;
+                break;
         }
-
-        default:
-            LOG(warning) << "Node: " << path << " has unsupported type: " << type;
-            break;
+        MmsValue_delete(subValue);
     }
 }
+
 
 void iec61850ClientManger::controlObjects(const std::vector<std::string> &nodes, std::string ctlVal)
 {
