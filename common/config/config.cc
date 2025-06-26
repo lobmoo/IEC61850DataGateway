@@ -32,14 +32,11 @@ Config &Config::getInstance()
     return instance;
 }
 
-bool Config::init(const std::string &BasePath)
+bool Config::init(const std::string &configPath)  // 精确到具体的yaml文件的路径
 {
     try {
-        std::vector<std::string> configPaths = getDeviceConfigPaths(BasePath);
-        for (const auto &configPath : configPaths) {
-            loadConfig(configPath);
-            LOG(debug) << "Loaded config: " << configPath;
-        }
+        loadConfig(configPath);
+        LOG(debug) << "Loaded config: " << configPath;
     } catch (const std::exception &e) {
         LOG(error) << "Failed to load configuration files: " << e.what();
         return false; // 如果加载配置文件失败，返回 false
@@ -57,12 +54,15 @@ void Config::loadConfig(const std::string &filename)
         data = std::make_unique<ConfigData>();
     }
     /*添加相关的解析函数*/
-    // if (!parseModbusConfig(config, data)) {
-    //     LOG(error) << "Failed to parse Modbus config";
-    // }
-    if (!parse61850Config(config, data)) {
+    if (!parseModbusConfig(config)) {
+        LOG(error) << "Failed to parse Modbus config";
+    }
+    if (!parse61850Config(config)) {
         LOG(error) << "Failed to parse IEC61850 config";
     }
+    // if (!parse104Config(config)) {
+    //     LOG(error) << "Failed to parse 104 config";
+    // }
 }
 
 const ConfigData *Config::getConfig()
@@ -70,193 +70,182 @@ const ConfigData *Config::getConfig()
     return data.get();
 }
 
-bool Config::parse61850Config(const YAML::Node &config, std::unique_ptr<ConfigData> &data)
+bool Config::parse61850Config(const YAML::Node& config)
 {
-    ConfigDataIEC61850 iec61850;
-    const YAML::Node &rootIEC61850 = config["config61850"];
-    if (!rootIEC61850) {
-        LOG(warning) << "IEC61850 config node not found";
-        return true; // 如果配置节点不存在，直接返回 false
+    const YAML::Node& devicesNode = config["IEC61850Devices"];
+    if (!devicesNode) {
+        LOG(warning) << "IEC61850Devices config not found";
+        return true;  // 空配置是合法的
     }
 
-    const YAML::Node &iec61850Config = rootIEC61850["general61850"];
-    if (!iec61850Config) {
-        LOG(error) << "IEC61850 general61850 node not found";
-        return false; // 如果 general61850 节点不存在，直接返回 false
+    // 必须为sequence
+    if (!devicesNode.IsSequence()) {
+        LOG(error) << "ModbusDevices should be a sequence.";
+        return false;
     }
 
-    if (!iec61850Config["name_data_object"]) {
-        LOG(error) << "IEC61850 device_id not found";
-        return false; // 设备 ID 缺失
-    }
-    iec61850.device_id = iec61850Config["name_data_object"].as<std::string>();
-    if (!iec61850Config["device_model"]) {
-        LOG(error) << "IEC61850 icd_file_path not found";
-        return false; // ICD 文件路径缺失
-    }
-    iec61850.icd_file_path = iec61850Config["device_model"].as<std::string>();
-    if (!iec61850Config["server_ip"]) {
-        LOG(error) << "IEC61850 IP address not found";
-        return false; // IP 地址缺失
-    }
-    iec61850.ip = iec61850Config["server_ip"].as<std::string>();
-    if (!iec61850Config["server_port"]) {
-        LOG(error) << "IEC61850 port not found";
-        return false; // 端口缺失
-    }
-    iec61850.port = iec61850Config["server_port"].as<int>();
-    // 将解析好的 IEC61850 配置存储到数据结构中
+    for (const auto& node : devicesNode) {
+        ConfigDataIEC61850 iec;
 
-    // 将解析好的 Modbus 配置存储到数据结构中
-    data->iec61850[iec61850.device_id] = iec61850;
-    return true;
-}
+        // 必填项（不为空）
+        iec.device_id        = node["device_id"].as<std::string>();
+        iec.ip               = node["ip"].as<std::string>();
+        iec.icd_file_path    = node["icd_file"].as<std::string>();
+        iec.access_point     = node["access_point"].as<std::string>();
+        iec.logical_device   = node["logical_device"].as<std::string>();
+        iec.client_mms_name  = node["client_mms_name"].as<std::string>();
 
-bool Config::parse104Config(const YAML::Node &config, std::unique_ptr<ConfigData> &data)
-{
-    return true;
-}
+        // 非必填项，允许缺失但不能为空
+        if (node["port"].IsNull()) return false;
+        iec.port = node["port"].as<int>();
 
-bool Config::parseModbusConfig(const YAML::Node &config, std::unique_ptr<ConfigData> &data)
-{
+        if (node["poll_interval"].IsNull()) return false;
+        iec.poll_interval = node["poll_interval"].as<int>();
 
-    ConfigDataModbus modbus;
+        if (node["max_retries"].IsNull()) return false;
+        iec.max_retries = node["max_retries"].as<int>();
 
-    const YAML::Node &modbusConfig = config["configModbus"];
-    if (!modbusConfig) {
-        LOG(warning) << "Modbus config node not found";
-        return true;
-    }
+        if (node["retry_interval"].IsNull()) return false;
+        iec.retry_interval = node["retry_interval"].as<int>();
 
-    // 解析 TCP 配置
-    const YAML::Node &tcpConfig = modbusConfig["TCP"];
-    if (tcpConfig) {
-        if (!tcpConfig["ip"]) {
-            LOG(error) << "TCP IP address not found";
+        if (node["report_enabled"].IsNull()) return false;
+        iec.report_enabled = node["report_enabled"].as<bool>();
+
+        if (node["goose_enabled"].IsNull()) return false;
+        iec.goose_enabled = node["goose_enabled"].as<bool>();
+
+        if (node["tls_enabled"].IsNull()) return false;
+        iec.tls_enabled = node["tls_enabled"].as<bool>();
+
+        if (node["description"].IsNull() || !node["description"].IsScalar() || node["description"].as<std::string>().empty()) {
             return false;
         }
-        modbus.tcp.ip = tcpConfig["ip"].as<std::string>();
+        iec.description = node["description"].as<std::string>();
 
-        if (!tcpConfig["port"]) {
-            LOG(error) << "TCP port not found";
-            return false; // 端口缺失
+        if (node["data_point_filters"].IsNull() || !node["data_point_filters"].IsSequence()) {
+            return false;
         }
-        modbus.tcp.port = tcpConfig["port"].as<int>();
-    } else {
-        return false; // 如果 TCP 节点不存在，直接返回 false
-    }
 
-    // 解析 RTU 配置
-    const YAML::Node &rtuConfig = modbusConfig["RTU"];
-    if (rtuConfig) {
-        if (!rtuConfig["port_name"]) {
-            LOG(error) << "RTU port_name not found";
-            return false; // 串口名称缺失
-        }
-        modbus.rtu.port_name = rtuConfig["port_name"].as<std::string>();
-
-        if (!rtuConfig["baudrate"]) {
-            LOG(error) << "RTU baudrate not found";
-            return false; // 波特率缺失
-        }
-        modbus.rtu.baudrate = rtuConfig["baudrate"].as<int>();
-
-        if (!rtuConfig["parity"]) {
-            LOG(error) << "RTU parity not found";
-            return false; // 校验方式缺失
-        }
-        modbus.rtu.parity = rtuConfig["parity"].as<std::string>();
-    } else {
-        return false; // 如果 RTU 节点不存在，直接返回 false
-    }
-
-    // 其他通用配置
-    if (!modbusConfig["cmd_interval"]) {
-        LOG(error) << "Modbus command interval not found";
-        return false; // 命令间隔缺失
-    }
-    modbus.cmd_interval = modbusConfig["cmd_interval"].as<int>();
-
-    if (!modbusConfig["slave_addr"]) {
-        LOG(error) << "Modbus slave address not found";
-        return false; // 从站地址缺失
-    }
-    modbus.slave_addr = modbusConfig["slave_addr"].as<int>();
-
-    if (!modbusConfig["max_retries"]) {
-        LOG(error) << "Modbus max retries not found";
-        return false; // 最大重试次数缺失v
-    }
-    modbus.max_retries = modbusConfig["max_retries"].as<int>();
-
-    if (!modbusConfig["retry_interval"]) {
-        LOG(error) << "Modbus retry interval not found";
-        return false; // 重试间隔缺失
-    }
-    modbus.retry_interval = modbusConfig["retry_interval"].as<int>();
-
-    if (!modbusConfig["type"]) {
-        LOG(error) << "Modbus type not found";
-        return false; // 类型缺失
-    }
-    modbus.Type = modbusConfig["type"].as<std::string>();
-
-    if (!modbusConfig["device_id"]) {
-        LOG(error) << "Modbus device_id not found";
-        return false; // 设备 ID 缺失
-    }
-    modbus.device_id = modbusConfig["device_id"].as<std::string>();
-    modbus.byte_order = modbusConfig["byte_order"].as<std::string>();
-
-    // 解析 data_points
-    const YAML::Node &dataPoints = config["data_points"];
-    if (dataPoints && dataPoints.IsSequence()) {
-        for (const YAML::Node &dataPointNode : dataPoints) {
-            ConfigDataModbus::data_points_t dataPoint;
-
-            if (!dataPointNode["name"] || !dataPointNode["address"] || !dataPointNode["type"]
-                || !dataPointNode["data_type"] || !dataPointNode["scale"]
-                || !dataPointNode["offset"]) {
-                return false; // 数据点的某个字段缺失
+        for (const auto& item : node["data_point_filters"]) {
+            if (!item.IsScalar() || item.as<std::string>().empty()) {
+                return false;
             }
-
-            // 解析每个 data_point 的配置
-            dataPoint.name = dataPointNode["name"].as<std::string>();
-            dataPoint.address = dataPointNode["address"].as<uint16_t>();
-            dataPoint.type = dataPointNode["type"].as<std::string>();
-            dataPoint.data_type =
-                dataPoint.getDataType(dataPointNode["data_type"].as<std::string>());
-            dataPoint.scale = dataPointNode["scale"].as<float>();
-            dataPoint.offset = dataPointNode["offset"].as<float>();
-
-            // 存储数据点配置
-            modbus.data_points.push_back(dataPoint);
+            iec.data_point_filters.emplace_back(item.as<std::string>());
         }
-    } else {
-        return false; // 如果 data_points 节点不存在或不是序列，直接返回 false
+
+        data->iec61850[iec.device_id] = iec;
     }
 
-    // 将解析好的 Modbus 配置存储到数据结构中
-    data->modbus[modbus.device_id] = modbus;
-
-    // 解析成功
     return true;
 }
 
-std::vector<std::string> Config::getDeviceConfigPaths(const std::string &baseConfigPath)
+bool Config::parse104Config(const YAML::Node &config)
 {
-    std::vector<std::string> configPaths;
-    try {
-        // 使用 C++17 文件系统库遍历目录
-        for (const auto &entry : std::filesystem::directory_iterator(baseConfigPath)) {
-            // 检查是否是常规文件且扩展名为 .yaml
-            if (entry.is_regular_file() && entry.path().extension() == ".yaml") {
-                configPaths.push_back(entry.path().string());
-            }
-        }
-    } catch (const std::filesystem::filesystem_error &e) {
-        LOG(error) << "File system error: " << e.what();
-        throw std::runtime_error("Failed to get device config paths");
-    }
-    return configPaths;
+    return true;
 }
+
+bool Config::parseModbusConfig(const YAML::Node& config)
+{
+    const auto& devicesNode = config["ModbusDevices"];
+    // 不存在ModbusDevices配置
+    if (!devicesNode) {
+        LOG(info) << "ModbusDevices not found, skip parsing.";
+        return true;
+    }
+    // 必须为sequence
+    if (!devicesNode.IsSequence()) {
+        LOG(error) << "ModbusDevices should be a sequence.";
+        return false;
+    }
+
+    for (const auto& deviceNode : devicesNode) {
+        ConfigDataModbus modbus;    
+
+        modbus.device_id      = deviceNode["device_id"].as<std::string>();
+        modbus.Type           = deviceNode["type"].as<std::string>();
+        modbus.slave_addr     = deviceNode["slave_addr"].as<int>();
+        modbus.cmd_interval   = deviceNode["cmd_interval"].as<int>();
+        modbus.max_retries    = deviceNode["max_retries"].as<int>();
+        modbus.retry_interval = deviceNode["retry_interval"].as<int>();
+        modbus.byte_order     = deviceNode["byte_order"].as<std::string>();
+        //判断type是TCP还是RTU，然后分别解析
+        if (modbus.Type == "TCP") {
+            const auto& tcp = deviceNode["TCP"];
+            if (!tcp || tcp["ip"].IsNull() || tcp["port"].IsNull()) {
+                LOG(error) << "Missing or empty TCP fields for device: " << modbus.device_id;
+                return false;
+            }
+            modbus.tcp.ip   = tcp["ip"].as<std::string>();
+            modbus.tcp.port = tcp["port"].as<int>();
+
+            // RTU默认
+            modbus.rtu.port_name = "";
+            modbus.rtu.baudrate  = 0;
+            modbus.rtu.parity    = "";
+
+        } else if (modbus.Type == "RTU") {
+            const auto& rtu = deviceNode["RTU"];
+            if (!rtu || rtu["port_name"].IsNull() || rtu["baudrate"].IsNull() || rtu["parity"].IsNull()) {
+                LOG(error) << "Missing or empty RTU fields for device: " << modbus.device_id;
+                return false;
+            }
+            modbus.rtu.port_name = rtu["port_name"].as<std::string>();
+            modbus.rtu.baudrate  = rtu["baudrate"].as<int>();
+            modbus.rtu.parity    = rtu["parity"].as<std::string>();
+
+            // TCP默认
+            modbus.tcp.ip   = "0.0.0.0";
+            modbus.tcp.port = 0;
+
+        } else {
+            LOG(error) << "Invalid type (must be 'TCP' or 'RTU'): " << modbus.Type;
+            return false;
+        }
+        // 对data_points进行解析
+        const auto& points = deviceNode["data_points"];
+        if (!points || !points.IsSequence()) {
+            LOG(error) << "Missing or invalid data_points for device: " << modbus.device_id;
+            return false;
+        }
+
+        for (const auto& point : points) {
+            ConfigDataModbus::data_points_t dp;
+            dp.name      = point["name"].as<std::string>();
+            dp.address   = point["address"].as<uint16_t>();
+            dp.type      = point["type"].as<std::string>();
+            dp.scale     = point["scale"].as<float>();
+            dp.offset    = point["offset"].as<float>();
+
+            std::string dt = point["data_type"].as<std::string>();
+            dp.data_type = dp.getDataType(dt);
+            if (dp.data_type == ConfigDataModbus::UNKNOWN) {
+                LOG(error) << "Unsupported data_type: " << dt << " in point: " << dp.name;
+                return false;
+            }
+
+            modbus.data_points.push_back(dp);
+        }
+
+        data->modbus[modbus.device_id] = modbus;
+    }
+
+    return true;
+}
+
+// std::vector<std::string> Config::getDeviceConfigPaths(const std::string &baseConfigPath)
+// {
+//     std::vector<std::string> configPaths;
+//     try {
+//         // 使用 C++17 文件系统库遍历目录
+//         for (const auto &entry : std::filesystem::directory_iterator(baseConfigPath)) {
+//             // 检查是否是常规文件且扩展名为 .yaml
+//             if (entry.is_regular_file() && entry.path().extension() == ".yaml") {
+//                 configPaths.push_back(entry.path().string());
+//             }
+//         }
+//     } catch (const std::filesystem::filesystem_error &e) {
+//         LOG(error) << "File system error: " << e.what();
+//         throw std::runtime_error("Failed to get device config paths");
+//     }
+//     return configPaths;
+// }
