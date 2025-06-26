@@ -56,7 +56,7 @@ int main()
 {
     std::cout << daemon_ << std::endl;
     Logger::Instance().setFlushOnLevel(Logger::info);
-    Logger::Instance().Init("log/myapp.log", Logger::console, Logger::trace, 60, 5);
+    Logger::Instance().Init("log/myapp.log", Logger::console, Logger::info, 60, 5);
 
     // /*初始化配置*/
     // auto &ptr = Config::getInstance();
@@ -74,18 +74,18 @@ int main()
     // appModbus.run();
 
     /*初始化61850 Client*/
-    // iec61850ClientManger iec61850Client("127.0.0.1", 102);
-    // iec61850Client.init("/home/wwk/work/IEC61850DataGateway/config/TEMPLATE.icd");
+    iec61850ClientManger iec61850Client("127.0.0.1", 102);
+    iec61850Client.init("/home/wwk/workspaces/IEC61850DataGateway/core/TEMPLATE.icd");
 
-    ice61850Service appIec61850Service;
-    if(!appIec61850Service.init("eth0")) {
-        LOG(error) << "Failed to initialize IEC 61850 service.";
-        return -1;
-    }
-    if (!appIec61850Service.startServer(102)) {
-        LOG(error) << "Failed to start IEC 61850 server.";
-        return -1;
-    }
+    // ice61850Service appIec61850Service;
+    // if(!appIec61850Service.init("eth0")) {
+    //     LOG(error) << "Failed to initialize IEC 61850 service.";
+    //     return -1;
+    // }
+    // if (!appIec61850Service.startServer(102)) {
+    //     LOG(error) << "Failed to start IEC 61850 server.";
+    //     return -1;
+    // }
 
     while (std::cin.get() != '\n') {
     }

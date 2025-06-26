@@ -94,7 +94,6 @@ void iec61850ClientManger::readAllValues(const std::vector<DataNode> &nodes)
 
             MmsValue *value = IedConnection_readObject(
                 con_, &error, node.path.c_str(), FunctionalConstraint_fromString(node.fc.c_str()));
-
             if (error == IED_ERROR_OK && value) {
                 // 成功读取 处理数据
                 //LOG(info) << "Read " << node.path << " value: " << valueStr;
@@ -147,22 +146,25 @@ void iec61850ClientManger::readAllValues(const std::vector<DataNode> &nodes)
                     }
 
                     case MMS_UTC_TIME: {
-                        uint32_t timestamp = MmsValue_toUnixTimestamp(value); // 通常是 ms
-                        std::time_t time = timestamp / 1000;
+                        uint64_t msTimestamp = MmsValue_getUtcTimeInMs(value);  // 单位是毫秒 
+                        std::time_t seconds = msTimestamp / 1000;
+                        int milliseconds = msTimestamp % 1000;
+
                         char buf[64];
-                        std::strftime(buf, sizeof(buf), "%F %T", std::localtime(&time));
-                        LOG(info) << "Node: " << node.path << " is binary time: " << buf << " ("
-                                  << timestamp << " ms)";
+                        std::strftime(buf, sizeof(buf), "%F %T", std::localtime(&seconds));
+                        LOG(info) << "Node: " << node.path << " is UTC time: " << buf << "."
+                                  << milliseconds << " (" << msTimestamp << " ms)";
                         break;
                     }
 
                     case MMS_STRUCTURE: {
-                        parseStructure(value, node.path);
+                        // parseStructure(value, node.path);
                         break;
                     }
 
                     default:
-                        LOG(info) << "Node: " << node.path << " has an unsupported type: " << type;
+                        LOG(warning)
+                            << "Node: " << node.path << " has an unsupported type: " << type;
                         break;
                 }
             } else {
@@ -170,16 +172,11 @@ void iec61850ClientManger::readAllValues(const std::vector<DataNode> &nodes)
                 std::string valueStr = value ? MmsValue_toString(value) : "nullptr";
                 LOG(error) << "Failed to read " << node.path << ": "
                            << IedClientError_toString(error) << ", value: " << valueStr;
-                if (value) {
-                    MmsValue_delete(value);
-                }
-                // 读取失败时等待
-                std::this_thread::sleep_for(std::chrono::milliseconds(200));
-                continue;
             }
             // 统一释放 value
             if (value) {
                 MmsValue_delete(value);
+                value = nullptr;
             }
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(1000)); // 每秒读取一次
@@ -197,10 +194,17 @@ void iec61850ClientManger::parseStructure(
 
     std::string indent(indentLevel * 2, ' '); // 用于日志缩进
 
+    // 限制递归深度，防止栈溢出
+    if (indentLevel > 10) {
+        LOG(error) << indent << "Max recursion depth exceeded at: " << nodePath;
+        return;
+    }
     // 如果指定了目标路径，使用 MmsValue_getSubElement
     if (!targetPath.empty() && varSpec) {
+
         MmsValue *subValue =
             MmsValue_getSubElement(value, varSpec, const_cast<char *>(targetPath.c_str()));
+
         if (subValue) {
             std::string subPath = nodePath + "." + targetPath;
             MmsType subType = MmsValue_getType(subValue);
@@ -261,7 +265,10 @@ void iec61850ClientManger::parseStructure(
                               << " has an unsupported type: " << subType;
                     break;
             }
-            MmsValue_delete(subValue);
+            if (subValue) {
+                MmsValue_delete(subValue);
+            }
+
         } else {
             LOG(error) << indent << "Failed to get sub-element: " << targetPath
                        << " for node: " << nodePath;
@@ -271,6 +278,7 @@ void iec61850ClientManger::parseStructure(
 
     // 遍历所有子元素
     int numSubValues = MmsValue_getArraySize(value);
+
     for (int i = 0; i < numSubValues; ++i) {
         MmsValue *subValue = MmsValue_getElement(value, i);
         if (!subValue) {
@@ -317,12 +325,11 @@ void iec61850ClientManger::parseStructure(
                 break;
             }
             case MMS_UTC_TIME: {
-                uint32_t timestamp = MmsValue_toUnixTimestamp(subValue);
-                std::time_t time = timestamp / 1000;
+                std::time_t timestamp = MmsValue_toUnixTimestamp(value); // 单位是秒 ✅
                 char buf[64];
-                std::strftime(buf, sizeof(buf), "%F %T", std::localtime(&time));
-                LOG(info) << indent << "Node: " << subPath << " is binary time: " << buf << " ("
-                          << timestamp << " ms)";
+                std::strftime(buf, sizeof(buf), "%F %T", std::localtime(&timestamp));
+                LOG(info) << "Node: " << subPath << " is UTC time: " << buf << " (" << timestamp
+                          << " s)";
                 break;
             }
             case MMS_STRUCTURE: {
@@ -335,10 +342,12 @@ void iec61850ClientManger::parseStructure(
                           << " has an unsupported type: " << subType;
                 break;
         }
-        MmsValue_delete(subValue);
+        // if (subValue) {
+        //     MmsValue_delete(subValue);
+        //     printf("eeeeee++++++++++++++++++++%d\n", MmsValue_getType(value));
+        // }
     }
 }
-
 
 void iec61850ClientManger::controlObjects(const std::vector<std::string> &nodes, std::string ctlVal)
 {
