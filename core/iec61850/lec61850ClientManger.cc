@@ -146,7 +146,7 @@ void iec61850ClientManger::readAllValues(const std::vector<DataNode> &nodes)
                     }
 
                     case MMS_UTC_TIME: {
-                        uint64_t msTimestamp = MmsValue_getUtcTimeInMs(value);  // 单位是毫秒 
+                        uint64_t msTimestamp = MmsValue_getUtcTimeInMs(value); // 单位是毫秒
                         std::time_t seconds = msTimestamp / 1000;
                         int milliseconds = msTimestamp % 1000;
 
@@ -247,12 +247,14 @@ void iec61850ClientManger::parseStructure(
                     break;
                 }
                 case MMS_UTC_TIME: {
-                    uint32_t timestamp = MmsValue_toUnixTimestamp(subValue);
-                    std::time_t time = timestamp / 1000;
+                    uint64_t msTimestamp = MmsValue_getUtcTimeInMs(value); // 单位是毫秒
+                    std::time_t seconds = msTimestamp / 1000;
+                    int milliseconds = msTimestamp % 1000;
+
                     char buf[64];
-                    std::strftime(buf, sizeof(buf), "%F %T", std::localtime(&time));
-                    LOG(info) << indent << "Node: " << subPath << " is binary time: " << buf << " ("
-                              << timestamp << " ms)";
+                    std::strftime(buf, sizeof(buf), "%F %T", std::localtime(&seconds));
+                    LOG(info) << "Node: " << subPath << " is UTC time: " << buf << "."
+                              << milliseconds << " (" << msTimestamp << " ms)";
                     break;
                 }
                 case MMS_STRUCTURE: {
@@ -325,11 +327,14 @@ void iec61850ClientManger::parseStructure(
                 break;
             }
             case MMS_UTC_TIME: {
-                std::time_t timestamp = MmsValue_toUnixTimestamp(value); // 单位是秒 ✅
+                uint64_t msTimestamp = MmsValue_getUtcTimeInMs(value); // 单位是毫秒
+                std::time_t seconds = msTimestamp / 1000;
+                int milliseconds = msTimestamp % 1000;
+
                 char buf[64];
-                std::strftime(buf, sizeof(buf), "%F %T", std::localtime(&timestamp));
-                LOG(info) << "Node: " << subPath << " is UTC time: " << buf << " (" << timestamp
-                          << " s)";
+                std::strftime(buf, sizeof(buf), "%F %T", std::localtime(&seconds));
+                LOG(info) << "Node: " << subPath << " is UTC time: " << buf << "." << milliseconds
+                          << " (" << msTimestamp << " ms)";
                 break;
             }
             case MMS_STRUCTURE: {
