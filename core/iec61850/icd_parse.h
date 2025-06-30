@@ -215,22 +215,23 @@ public:
     {
         LOG(debug) << "Parsed Data Nodes:";
         for (const auto &node : result.nodes) {
-            std::cout << "  Path: " << node.path << ", FC: " << node.fc << std::endl;
+            LOG(debug) << "  Path: " << node.path << ", FC: " << node.fc;
         }
+        std::cout << std::endl;
 
-        LOG(info) << "Parsed Data Sets:";
+        LOG(debug) << "Parsed Data Sets:";
         for (const auto &ds : result.dataSets) {
-            std::cout << "  DataSet: " << ds.name << ", FCDA Paths: ";
+            LOG(debug) << "  DataSet: " << ds.name << ", FCDA Paths: ";
             for (const auto &path : ds.fcdaPaths) {
-                std::cout << path << " ";
+                LOG(debug) << "  FCDA Path: " << path;
             }
             std::cout << std::endl;
         }
 
-        LOG(info) << "Parsed Report Controls:";
+        LOG(debug) << "Parsed Report Controls:";
         for (const auto &rpt : result.reports) {
-            std::cout << "  ReportControl: " << rpt.name << ", DataSet: " << rpt.datSet
-                      << ", Buffered: " << (rpt.buffered ? "Yes" : "No") << std::endl;
+            LOG(debug) << "  ReportControl: " << rpt.name << ", DataSet: " << rpt.datSet
+                       << ", Buffered: " << (rpt.buffered ? "Yes" : "No");
         }
     }
 
