@@ -150,17 +150,48 @@ struct ConfigDataModbus {
 };
 
 struct ConfigDataIEC61850 {
+    //必填项
     std::string device_id;
-    std::string icd_file_path;
     std::string ip;
+    std::string icd_file_path;
+    std::string access_point;
+    std::string logical_device;
+    std::string client_mms_name;
+    //非必填项
     int port;
+    int poll_interval;
+    int max_retries;
+    int retry_interval;
+    bool report_enabled;
+    bool goose_enabled; 
+    bool tls_enabled;
+    std::string description;
+    std::vector<std::string> data_point_filters;
+
 
     void to_string() const
     {
+        // 必填项
         LOG(info) << "device_id: " << device_id;
-        LOG(info) << "icd_file_path: " << icd_file_path;
         LOG(info) << "ip: " << ip;
+        LOG(info) << "icd_file_path: " << icd_file_path;
+        LOG(info) << "access_point: " << access_point;
+        LOG(info) << "logical_device: " << logical_device;
+        LOG(info) << "client_mms_name: " << client_mms_name;
+        // 非必填项
         LOG(info) << "port: " << port;
+        LOG(info) << "poll_interval: " << poll_interval;
+        LOG(info) << "max_retries: " << max_retries;
+        LOG(info) << "retry_interval: " << retry_interval;
+        LOG(info) << "report_enabled: " << report_enabled;
+        LOG(info) << "goose_enabled: " << goose_enabled;
+        LOG(info) << "tls_enabled: " << tls_enabled;
+        LOG(info) << "description: " << description;
+        LOG(info) << "data_point_filters: ";       
+        for (const auto &filter : data_point_filters) 
+        {
+            LOG(info) << filter;
+        }
     }
 };
 
@@ -226,17 +257,16 @@ public:
     const ConfigData *getConfig();
 
 private:
-    std::unique_ptr<ConfigData> data = nullptr;
     std::mutex mutex_;
-
+    std::unique_ptr<ConfigData> data = nullptr;
 private:
     Config();
     Config(const Config &) = delete;
     Config &operator=(const Config &) = delete;
-    bool parseModbusConfig(const YAML::Node &config, std::unique_ptr<ConfigData> &data);
-    bool parse61850Config(const YAML::Node &config, std::unique_ptr<ConfigData> &data);
-    bool parse104Config(const YAML::Node &config, std::unique_ptr<ConfigData> &data);
-    std::vector<std::string> getDeviceConfigPaths(const std::string &baseConfigPath);
+    bool parseModbusConfig(const YAML::Node &config);
+    bool parse61850Config(const YAML::Node &config);
+    bool parse104Config(const YAML::Node &config);
+    // std::vector<std::string> getDeviceConfigPaths(const std::string &baseConfigPath);
     void loadConfig(const std::string &filename);
 };
 

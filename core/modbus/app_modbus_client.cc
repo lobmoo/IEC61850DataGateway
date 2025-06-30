@@ -203,30 +203,30 @@ bool AppModbus::processUserData(
             case ConfigDataModbus::INT16: {
                 int16_t value = static_cast<int16_t>(dataBuffer[uOffset]);
                 redis.storeInt(point.name, value);
-                uOffset += 2;   //todo 这里不确定传几进制  二进制可以用pipline模式
+                uOffset += 1;   //todo 这里不确定传几进制  二进制可以用pipline模式
                 LOG(info) << "INT16: " << value;
             } break;
             case ConfigDataModbus::UINT16: {
                 uint16_t value = static_cast<uint16_t>(dataBuffer[uOffset]);
-                uOffset += 2;
+                uOffset += 1;
                 redis.storeUInt(point.name, value);
                 LOG(info) << "UINT16: " << value;
             } break;
             case ConfigDataModbus::INT32: {
                 int32_t value = static_cast<int32_t>(dataBuffer[uOffset]);
-                uOffset += 4;
+                uOffset += 2;
                 redis.storeDInt(point.name, value);
                 LOG(info) << "INT32: " << value;
             } break;
             case ConfigDataModbus::UINT32: {
                 uint32_t value = static_cast<uint32_t>(dataBuffer[uOffset]);
-                uOffset += 4;
+                uOffset += 2;
                 redis.storeUDInt(point.name, value);
                 LOG(info) << "UINT32: " << value;
             } break;
             case ConfigDataModbus::FLOAT32: {
                 float value = *reinterpret_cast<const float *>(&dataBuffer[uOffset]);
-                uOffset += 4;
+                uOffset += 2;
                 redis.storeLReal(point.name, value);
                 LOG(info) << "FLOAT32: " << value;
             } break;
@@ -256,7 +256,7 @@ void AppModbus::processContinuousRegisters(
 
     LOG(debug) << "device : " << config->device_id << "  +++++size: " << points.size() << "+++++";
     size_t i = 0;
-    while (i < points.size()) {
+    while (i < points.size()) {     
         RegisterRange range = findContinuousRegisters(points, i);
         LOG(debug) << "Processing range >> start_addr : " << range.start_addr
                    << " count: " << range.count << " index: " << range.end_index;

@@ -80,6 +80,23 @@ bool ModbusApi::writeRegister(uint16_t addr, uint16_t value)
     return true;
 }
 
+bool ModbusApi::writeRegisters(uint16_t startAddr, int nbRegs, uint16_t *src)
+{
+    std::lock_guard<std::mutex> lock(ctxMutex_);
+    if (NULL == ctx_) {
+        LOG(error) << "No valid Modbus context available.";
+        return false;
+    }
+
+    if (modbus_write_registers(ctx_, startAddr , nbRegs, src) == -1) {
+        destroy();
+        LOG(error) << "Failed to write registers: " + std::string(modbus_strerror(errno));
+        return false;    
+    }
+    return true;
+}
+
+
 void ModbusApi::reconnectLoop()
 {
     int retries = 0;
