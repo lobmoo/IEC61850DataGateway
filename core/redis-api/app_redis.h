@@ -1,16 +1,16 @@
 /**
- * @file DRDSDataRedis.h
- * @brief
+ * @file app_redis.h
+ * @brief 
  * @author wwk (1162431386@qq.com)
  * @version 1.0
- * @date 2024-09-13
- *
- * @copyright Copyright (c) 2024  by  wwk
- *
- * @par 修改日志:单例模式，redis数据库操作接口
- * 该接口不是线程安全的，不建议在多线程环境下使用单个实例操作 <table>
+ * @date 2025-06-27
+ * 
+ * @copyright Copyright (c) 2025  by  wwk : wwk.lobmo@gmail.com
+ * 
+ * @par 修改日志:
+ * <table>
  * <tr><th>Date       <th>Version <th>Author  <th>Description
- * <tr><td>2024-09-13     <td>1.0     <td>wwk   <td>修改?
+ * <tr><td>2025-06-27     <td>1.0     <td>wwk   <td>修改?
  * </table>
  */
 #pragma once
@@ -101,6 +101,7 @@ public:
   uint32_t getDWord(const std::string &key);
   uint64_t getLWord(const std::string &key);
   redisContext *getConnection();
+   bool isInitialized() const { return initialized; }
 
 private:
   redisContext *context_ = nullptr;   /*redis 句柄指针*/
@@ -111,6 +112,7 @@ private:
   static std::string default_unix_socket_path; // 默认 Unix socket 路径
   static std::string default_host;             // 默认主机名
   static int default_port;                     // 默认端口号
+  bool initialized;
 
 private:
   void initializeUnixConnection(const std::string &unix_socket_path);

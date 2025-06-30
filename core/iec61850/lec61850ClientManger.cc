@@ -71,7 +71,12 @@ void iec61850ClientManger::disconnect()
 void iec61850ClientManger::readAllValues(const std::vector<DataNode> &nodes)
 {
 
-    LOG(info) << "Reading all values from IEC 61850 nodes...";
+    DRDSDataRedis redisClient;
+    if(!redisClient.isInitialized())
+    {
+        LOG(error) << "Redis client is not initialized.";
+        return;
+    }
     IedClientError error;
     if (nodes.empty()) {
         LOG(info) << "No nodes to read.";
@@ -105,22 +110,26 @@ void iec61850ClientManger::readAllValues(const std::vector<DataNode> &nodes)
                 switch (type) {
                     case MMS_BOOLEAN: {
                         bool val = MmsValue_getBoolean(value);
+                        redisClient.storeBool(node.path, val);
                         LOG(info) << "Node: " << node.path << " is: " << val;
                         break;
                     }
                     case MMS_INTEGER: {
                         int64_t val = MmsValue_toInt64(value);
+                        redisClient.storeLInt(node.path, val);
                         LOG(info) << "Node: " << node.path << " is: " << val;
                         break;
                     }
                     case MMS_UNSIGNED: {
                         uint64_t val = MmsValue_toInt64(value);
+                        redisClient.storeULInt(node.path, val);
                         LOG(info) << "Node: " << node.path << " is: " << val;
                         break;
                     }
 
                     case MMS_FLOAT: {
                         double val = MmsValue_toDouble(value);
+                        redisClient.storeLReal(node.path, val);
                         LOG(info) << "Node: " << node.path << " is: " << val;
                         break;
                     }
@@ -128,6 +137,7 @@ void iec61850ClientManger::readAllValues(const std::vector<DataNode> &nodes)
                     case MMS_STRING:
                     case MMS_VISIBLE_STRING: {
                         const char *str = MmsValue_toString(value);
+                        redisClient.storeString(node.path, str ? str : "");
                         if (str) {
                             LOG(info) << "Node: " << node.path << " is: " << str;
                         } else {
@@ -138,9 +148,11 @@ void iec61850ClientManger::readAllValues(const std::vector<DataNode> &nodes)
                     case MMS_BIT_STRING: {
                         int size = MmsValue_getBitStringSize(value);
                         std::string bitStr;
+                        bitStr.reserve(size); // 预分配空间以提高性能
                         for (int i = 0; i < size; ++i) {
                             bitStr += MmsValue_getBitStringBit(value, i) ? '1' : '0';
                         }
+                        redisClient.storeString(node.path, bitStr);
                         LOG(info) << "Node: " << node.path << " is bit string: " << bitStr;
                         break;
                     }
@@ -154,11 +166,12 @@ void iec61850ClientManger::readAllValues(const std::vector<DataNode> &nodes)
                         std::strftime(buf, sizeof(buf), "%F %T", std::localtime(&seconds));
                         LOG(info) << "Node: " << node.path << " is UTC time: " << buf << "."
                                   << milliseconds << " (" << msTimestamp << " ms)";
+                        redisClient.storeLInt(node.path, msTimestamp);
                         break;
                     }
 
                     case MMS_STRUCTURE: {
-                        // parseStructure(value, node.path);
+                        parseStructure(redisClient, value, node.path);
                         break;
                     }
 
@@ -183,7 +196,7 @@ void iec61850ClientManger::readAllValues(const std::vector<DataNode> &nodes)
     }
 }
 
-void iec61850ClientManger::parseStructure(
+void iec61850ClientManger::parseStructure(DRDSDataRedis &redisClient,
     MmsValue *value, const std::string &nodePath, MmsVariableSpecification *varSpec,
     int indentLevel, const std::string &targetPath)
 {
@@ -211,28 +224,33 @@ void iec61850ClientManger::parseStructure(
             switch (subType) {
                 case MMS_BOOLEAN: {
                     bool val = MmsValue_getBoolean(subValue);
+                    redisClient.storeBool(subPath, val);
                     LOG(info) << indent << "Node: " << subPath
                               << " is: " << (val ? "true" : "false");
                     break;
                 }
                 case MMS_INTEGER: {
                     int64_t val = MmsValue_toInt64(subValue);
+                    redisClient.storeLInt(subPath, val);
                     LOG(info) << indent << "Node: " << subPath << " is: " << val;
                     break;
                 }
                 case MMS_UNSIGNED: {
                     uint64_t val = MmsValue_toInt64(subValue);
+                    redisClient.storeULInt(subPath, val);
                     LOG(info) << indent << "Node: " << subPath << " is: " << val;
                     break;
                 }
                 case MMS_FLOAT: {
                     double val = MmsValue_toDouble(subValue);
+                    redisClient.storeLReal(subPath, val);
                     LOG(info) << indent << "Node: " << subPath << " is: " << val;
                     break;
                 }
                 case MMS_STRING:
                 case MMS_VISIBLE_STRING: {
                     const char *str = MmsValue_toString(subValue);
+                    redisClient.storeString(subPath, str ? str : "");
                     LOG(info) << indent << "Node: " << subPath
                               << " is: " << (str ? str : "empty string");
                     break;
@@ -240,14 +258,17 @@ void iec61850ClientManger::parseStructure(
                 case MMS_BIT_STRING: {
                     int size = MmsValue_getBitStringSize(subValue);
                     std::string bitStr;
+                    bitStr.reserve(size); // 预分配空间以提高性能
                     for (int j = 0; j < size; ++j) {
                         bitStr += MmsValue_getBitStringBit(subValue, j) ? '1' : '0';
                     }
+                    redisClient.storeString(subPath, bitStr);
                     LOG(info) << indent << "Node: " << subPath << " is bit string: " << bitStr;
                     break;
                 }
                 case MMS_UTC_TIME: {
                     uint64_t msTimestamp = MmsValue_getUtcTimeInMs(value); // 单位是毫秒
+                    redisClient.storeLInt(subPath, msTimestamp);
                     std::time_t seconds = msTimestamp / 1000;
                     int milliseconds = msTimestamp % 1000;
 
@@ -259,7 +280,7 @@ void iec61850ClientManger::parseStructure(
                 }
                 case MMS_STRUCTURE: {
                     LOG(info) << indent << "Node: " << subPath << " is a structure";
-                    parseStructure(subValue, subPath, nullptr, indentLevel + 1); // 递归解析子结构体
+                    parseStructure(redisClient, subValue, subPath, nullptr, indentLevel + 1); // 递归解析子结构体
                     break;
                 }
                 default:
@@ -339,7 +360,7 @@ void iec61850ClientManger::parseStructure(
             }
             case MMS_STRUCTURE: {
                 LOG(info) << indent << "Node: " << subPath << " is a structure";
-                parseStructure(subValue, subPath, nullptr, indentLevel + 1);
+                parseStructure(redisClient, subValue, subPath, nullptr, indentLevel + 1);
                 break;
             }
             default:
