@@ -21,7 +21,7 @@
 #include <filesystem>
 #include "redis-api/app_redis.h"
 
-// #define MODBUS_DEBUG
+#define MODBUS_DEBUG
 
 AppModbus::AppModbus() : running_(true), thread_pool_(1024)
 {
@@ -193,41 +193,44 @@ RegisterRange AppModbus::findContinuousRegisters(
 }
 
 bool AppModbus::processUserData(
-    const std::vector<uint16_t> &dataBuffer,
+    const std::string &deviceId, const std::vector<uint16_t> &dataBuffer,
     std::vector<ConfigDataModbus::data_points_t> &dataPoints)
 {
-    uint32_t   uOffset = 0;
+    uint32_t uOffset = 0;
     DRDSDataRedis redis;
+    const std::string redisKeyPrefix = "modbus_data:";
+    std::string redisKey;
     for (auto point : dataPoints) {
+        redisKey = redisKeyPrefix + deviceId + ":" + point.name;
         switch (point.data_type) {
             case ConfigDataModbus::INT16: {
                 int16_t value = static_cast<int16_t>(dataBuffer[uOffset]);
-                redis.storeInt(point.name, value);
-                uOffset += 1;   //todo 这里不确定传几进制  二进制可以用pipline模式
+                redis.storeInt(redisKey, value);
+                uOffset += 1; //todo 这里不确定传几进制  二进制可以用pipline模式
                 LOG(info) << "INT16: " << value;
             } break;
             case ConfigDataModbus::UINT16: {
                 uint16_t value = static_cast<uint16_t>(dataBuffer[uOffset]);
                 uOffset += 1;
-                redis.storeUInt(point.name, value);
+                redis.storeUInt(redisKey, value);
                 LOG(info) << "UINT16: " << value;
             } break;
             case ConfigDataModbus::INT32: {
                 int32_t value = static_cast<int32_t>(dataBuffer[uOffset]);
                 uOffset += 2;
-                redis.storeDInt(point.name, value);
+                redis.storeDInt(redisKey, value);
                 LOG(info) << "INT32: " << value;
             } break;
             case ConfigDataModbus::UINT32: {
                 uint32_t value = static_cast<uint32_t>(dataBuffer[uOffset]);
                 uOffset += 2;
-                redis.storeUDInt(point.name, value);
+                redis.storeUDInt(redisKey, value);
                 LOG(info) << "UINT32: " << value;
             } break;
             case ConfigDataModbus::FLOAT32: {
                 float value = *reinterpret_cast<const float *>(&dataBuffer[uOffset]);
                 uOffset += 2;
-                redis.storeLReal(point.name, value);
+                redis.storeLReal(redisKey, value);
                 LOG(info) << "FLOAT32: " << value;
             } break;
             default:
@@ -244,8 +247,6 @@ void AppModbus::processContinuousRegisters(
     if (points.empty())
         return;
 
-   
-
     /*地址按照顺序排列，方便拿数据*/
     std::sort(
         points.begin(), points.end(),
@@ -256,7 +257,7 @@ void AppModbus::processContinuousRegisters(
 
     LOG(debug) << "device : " << config->device_id << "  +++++size: " << points.size() << "+++++";
     size_t i = 0;
-    while (i < points.size()) {     
+    while (i < points.size()) {
         RegisterRange range = findContinuousRegisters(points, i);
         LOG(debug) << "Processing range >> start_addr : " << range.start_addr
                    << " count: " << range.count << " index: " << range.end_index;
@@ -277,8 +278,7 @@ void AppModbus::processContinuousRegisters(
         printf("\n");
 
         /*数据处理*/
-        if(!processUserData(buffer, points))
-        {
+        if (!processUserData(config->device_id, buffer, points)) {
             LOG(error) << "Failed to process user data";
             i = range.end_index + 1;
             continue;
@@ -294,6 +294,7 @@ void AppModbus::runTask()
         const auto &deviceId = device.first;
         (void)thread_pool_.detach_task([this, deviceId]() {
             auto modbusApi = getDeviceApi(deviceId);
+
 #ifdef MODBUS_DEBUG
             /*打开调试 */
             modbusApi->set_debug();

@@ -65,26 +65,25 @@ int main()
         return -1;
     }
     auto config = ptr.getConfig();
-    LOG(info) << "Modbus Config: ";
-    config->getModbus("modbus_1")->to_string();
-    LOG(info) << "\n------------------------\n";
-    LOG(info) << "IEC61850 Config: ";
-    config->getIec61850("iec1")->to_string();
-    LOG(info) << "\n------------------------\n";
-    LOG(info) << "IEC104 Config: ";
-    config->getIec104("iec104_device_1")->to_string();
-    // ptr.getConfig()->getModbus()->to_string();
-
+    // LOG(info) << "Modbus Config: ";
+    // config->getModbus("modbus_1")->to_string();
+    // LOG(info) << "\n------------------------\n";
+    // LOG(info) << "IEC61850 Config: ";
+    // config->getIec61850("iec1")->to_string();
+    // LOG(info) << "\n------------------------\n";
+    // LOG(info) << "IEC104 Config: ";
+    // config->getIec104("iec104_device_1")->to_string();
+   
     /*初始化redis*/
     DRDSDataRedis::setDefaultConnectionInfo("", "127.0.0.1", 6380);
 
-    // /*初始化modbus*/
-    // AppModbus appModbus;
-    // appModbus.run();
+    /*初始化modbus*/
+    AppModbus appModbus;
+    appModbus.run();
 
     /*初始化61850 Client*/
-    iec61850ClientManger iec61850ClientManager;
-    iec61850ClientManager.initClients();
+    // iec61850ClientManger iec61850ClientManager;
+    // iec61850ClientManager.initClients();
 
     // ice61850Service appIec61850Service;
     // if(!appIec61850Service.init("eth0")) {

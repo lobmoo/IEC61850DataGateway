@@ -56,7 +56,8 @@ private:
     void processContinuousRegisters(
         std::shared_ptr<ModbusApi> modbusApi, const ConfigDataModbus *config);
     bool processUserData(
-        const std::vector<uint16_t> &dataBuffer, std::vector<ConfigDataModbus::data_points_t> &dataPoints);
+        const std::string &deviceId, const std::vector<uint16_t> &dataBuffer,
+        std::vector<ConfigDataModbus::data_points_t> &dataPoints);
     void runTask();
 };
 

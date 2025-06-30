@@ -16,7 +16,7 @@ ModbusDevices:
     data_points:
       - name: "Status"
         address: 0x0000
-        type: "coil"
+        type: "holding_register"
         data_type: "uint16"
         scale: 1
         offset: 0
