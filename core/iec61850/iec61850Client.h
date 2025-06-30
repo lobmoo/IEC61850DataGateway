@@ -1,5 +1,5 @@
 /**
- * @file iec61850ClientManger.h
+ * @file iec61850Client.h
  * @brief 
  * @author wwk (1162431386@qq.com)
  * @version 1.0
@@ -22,12 +22,12 @@
 #include "iec61850_client.h"
 #include "redis-api/app_redis.h"
 
-class iec61850ClientManger
+class iec61850Client
 {
 
 public:
-    iec61850ClientManger(std::string ip, uint16_t port);
-    ~iec61850ClientManger();
+    iec61850Client(std::string ip, uint16_t port);
+    ~iec61850Client();
     void init(const char *configFilePath);
     bool connect();
     void disconnect();

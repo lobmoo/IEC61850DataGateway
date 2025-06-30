@@ -24,7 +24,7 @@
 #include "log/logger.h"
 #include "config/config.h"
 #include "redis-api/app_redis.h"
-#include "iec61850/iec61850ClientManger.h"
+#include "iec61850/iec61850Client.h"
 #include "iec61850/ice61850Service.h"
 
 const std::string daemon_ = R"(
@@ -60,7 +60,7 @@ int main()
 
     // /*初始化配置*/
     auto &ptr = Config::getInstance();
-    if (!ptr.init("/home/weiqb/src/IEC61850DataGateway/config/config.yaml")) {
+    if (!ptr.init("/home/wwk/workspaces/IEC61850DataGateway/config/config.yaml")) {
         LOG(error) << "Failed to load configuration.";
         return -1;
     }
@@ -74,16 +74,17 @@ int main()
     LOG(info) << "IEC104 Config: ";
     config->getIec104("iec104_device_1")->to_string();
     // ptr.getConfig()->getModbus()->to_string();
+
     /*初始化redis*/
-    // DRDSDataRedis::setDefaultConnectionInfo("", "127.0.0.1", 6379);
+    DRDSDataRedis::setDefaultConnectionInfo("", "127.0.0.1", 6380);
 
     // /*初始化modbus*/
     // AppModbus appModbus;
     // appModbus.run();
 
     /*初始化61850 Client*/
-    // iec61850ClientManger iec61850Client("127.0.0.1", 102);
-    // iec61850Client.init("/home/wwk/workspaces/IEC61850DataGateway/core/TEMPLATE.icd");
+    iec61850Client iec61850Client("127.0.0.1", 102);
+    iec61850Client.init("/home/wwk/workspaces/IEC61850DataGateway/core/TEMPLATE.icd");
 
     // ice61850Service appIec61850Service;
     // if(!appIec61850Service.init("eth0")) {
