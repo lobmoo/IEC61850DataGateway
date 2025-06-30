@@ -1,0 +1,64 @@
+ModbusDevices:
+  - device_id: "modbus_1"
+    type: "TCP"
+    TCP:
+      ip: "192.168.1.10"
+      port: 502
+    RTU:
+      port_name: "/dev/ttyUSB0"
+      baudrate: 9600
+      parity: "N"
+    slave_addr: 1
+    cmd_interval: 2000
+    max_retries: 3
+    retry_interval: 1000
+    byte_order: "big"
+    data_points:
+      - name: "Status"
+        address: 0x0000
+        type: "coil"
+        data_type: "uint16"
+        scale: 1
+        offset: 0
+      - name: "Temperature"
+        address: 0x0001
+        type: "holding_register"
+        data_type: "uint16"
+        scale: 0.1
+        offset: 0
+
+IEC61850Devices:
+  - device_id: "iec1"
+    ip: "192.168.1.20"
+    port: 102
+    icd_file: "/path/to/your1.icd"
+    access_point: "P1"
+    logical_device: "LD0"
+    poll_interval: 2000
+    report_enabled: true
+    goose_enabled: false
+    client_mms_name: "CLIENT1"
+    max_retries: 5
+    retry_interval: 1000
+    tls_enabled: false
+    description: "none"
+    data_point_filters:
+      - "LD0/MMXU1.A.phsA.cVal.mag.f"
+      - "LD0/LLN0.Op.general"
+
+  - device_id: "iec2"
+    ip: "192.168.1.21"
+    port: 102
+    icd_file: "/path/to/your2.icd"
+    access_point: "P1"
+    logical_device: "LD_Motor"
+    poll_interval: 1000
+    report_enabled: false
+    goose_enabled: true
+    client_mms_name: "CLIENT2"
+    max_retries: 5
+    retry_interval: 1000
+    tls_enabled: false
+    description: "none"
+    data_point_filters:
+      - "LD_Motor/MHAI1.Amp.mag.f"

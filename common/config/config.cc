@@ -86,7 +86,7 @@ bool Config::parse61850Config(const YAML::Node& config)
 
     for (const auto& node : devicesNode) {
         ConfigDataIEC61850 iec;
-
+        LOG(info) << "Parsing IEC61850 Device: " << node["device_id"].as<std::string>();
         // 必填项（不为空）
         iec.device_id        = node["device_id"].as<std::string>();
         iec.ip               = node["ip"].as<std::string>();
@@ -157,10 +157,9 @@ bool Config::parseModbusConfig(const YAML::Node& config)
         LOG(error) << "ModbusDevices should be a sequence.";
         return false;
     }
-
     for (const auto& deviceNode : devicesNode) {
         ConfigDataModbus modbus;    
-
+        LOG(info) << "Processing Modbus device: " << deviceNode["device_id"].as<std::string>();
         modbus.device_id      = deviceNode["device_id"].as<std::string>();
         modbus.Type           = deviceNode["type"].as<std::string>();
         modbus.slave_addr     = deviceNode["slave_addr"].as<int>();

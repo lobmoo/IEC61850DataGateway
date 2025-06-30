@@ -59,15 +59,19 @@ int main()
     Logger::Instance().Init("log/myapp.log", Logger::console, Logger::info, 60, 5);
 
     // /*初始化配置*/
-    // auto &ptr = Config::getInstance();
-    // if (!ptr.init("/home/wwk/work/IEC61850DataGateway/config/")) {
-    //     LOG(error) << "Failed to load configuration.";
-    //     return -1;
-    // }
-
+    auto &ptr = Config::getInstance();
+    if (!ptr.init("/home/weiqb/src/IEC61850DataGateway/config/config.yaml")) {
+        LOG(error) << "Failed to load configuration.";
+        return -1;
+    }
+    auto config = ptr.getConfig();
+    LOG(info) << "Modbus Config: ";
+    config->getModbus("modbus_1")->to_string();
+    LOG(info) << "IEC61850 Config: ";
+    config->getIec61850("iec1")->to_string();
     // ptr.getConfig()->getModbus()->to_string();
     /*初始化redis*/
-    DRDSDataRedis::setDefaultConnectionInfo("", "127.0.0.1", 6379);
+    // DRDSDataRedis::setDefaultConnectionInfo("", "127.0.0.1", 6379);
 
     // /*初始化modbus*/
     // AppModbus appModbus;
