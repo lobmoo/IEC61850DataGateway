@@ -20,6 +20,7 @@
 #include <atomic>
 #include "icd_parse.h"
 #include "iec61850_client.h"
+#include "redis-api/app_redis.h"
 
 class iec61850ClientManger
 {
@@ -36,7 +37,7 @@ public:
 
 private:
     void parseStructure(
-        MmsValue *value, const std::string &nodePath, MmsVariableSpecification *varSpec = nullptr,
+        DRDSDataRedis &redisClient, MmsValue *value, const std::string &nodePath, MmsVariableSpecification *varSpec = nullptr,
         int indentLevel = 0, const std::string &targetPath = "");
 
 private:

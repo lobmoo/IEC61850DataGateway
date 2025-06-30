@@ -30,7 +30,7 @@ void DRDSDataRedis::setDefaultConnectionInfo(
                 << unix_socket_path << ", host=" << host << ", port=" << port;
 }
 
-DRDSDataRedis::DRDSDataRedis() {
+DRDSDataRedis::DRDSDataRedis():initialized(false) {
   if (!default_unix_socket_path.empty()) {
     initializeUnixConnection(default_unix_socket_path);
   } else if (!default_host.empty() && default_port > 0) {
@@ -425,13 +425,14 @@ bool DRDSDataRedis::checkRedisConnection(const std::string &connectionType) {
                                 : "Can't allocate redis context_");
     if (context_) {
       redisFree(context_);
+      context_ = nullptr;
     }
 
     LOG(error)
         << "Failed to connect to Redis, please check your redis Server";
-    throw std::runtime_error("Invalid default Redis connection info");
     return false;
   }
+  initialized = true;
   return true;
 }
 

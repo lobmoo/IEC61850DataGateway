@@ -71,7 +71,12 @@ void iec61850ClientManger::disconnect()
 void iec61850ClientManger::readAllValues(const std::vector<DataNode> &nodes)
 {
 
-    LOG(info) << "Reading all values from IEC 61850 nodes...";
+    DRDSDataRedis redisClient;
+    if(!redisClient.isInitialized())
+    {
+        LOG(error) << "Redis client is not initialized.";
+        return;
+    }
     IedClientError error;
     if (nodes.empty()) {
         LOG(info) << "No nodes to read.";
@@ -94,7 +99,6 @@ void iec61850ClientManger::readAllValues(const std::vector<DataNode> &nodes)
 
             MmsValue *value = IedConnection_readObject(
                 con_, &error, node.path.c_str(), FunctionalConstraint_fromString(node.fc.c_str()));
-
             if (error == IED_ERROR_OK && value) {
                 // 成功读取 处理数据
                 //LOG(info) << "Read " << node.path << " value: " << valueStr;
@@ -106,22 +110,26 @@ void iec61850ClientManger::readAllValues(const std::vector<DataNode> &nodes)
                 switch (type) {
                     case MMS_BOOLEAN: {
                         bool val = MmsValue_getBoolean(value);
+                        redisClient.storeBool(node.path, val);
                         LOG(info) << "Node: " << node.path << " is: " << val;
                         break;
                     }
                     case MMS_INTEGER: {
                         int64_t val = MmsValue_toInt64(value);
+                        redisClient.storeLInt(node.path, val);
                         LOG(info) << "Node: " << node.path << " is: " << val;
                         break;
                     }
                     case MMS_UNSIGNED: {
                         uint64_t val = MmsValue_toInt64(value);
+                        redisClient.storeULInt(node.path, val);
                         LOG(info) << "Node: " << node.path << " is: " << val;
                         break;
                     }
 
                     case MMS_FLOAT: {
                         double val = MmsValue_toDouble(value);
+                        redisClient.storeLReal(node.path, val);
                         LOG(info) << "Node: " << node.path << " is: " << val;
                         break;
                     }
@@ -129,6 +137,7 @@ void iec61850ClientManger::readAllValues(const std::vector<DataNode> &nodes)
                     case MMS_STRING:
                     case MMS_VISIBLE_STRING: {
                         const char *str = MmsValue_toString(value);
+                        redisClient.storeString(node.path, str ? str : "");
                         if (str) {
                             LOG(info) << "Node: " << node.path << " is: " << str;
                         } else {
@@ -139,30 +148,36 @@ void iec61850ClientManger::readAllValues(const std::vector<DataNode> &nodes)
                     case MMS_BIT_STRING: {
                         int size = MmsValue_getBitStringSize(value);
                         std::string bitStr;
+                        bitStr.reserve(size); // 预分配空间以提高性能
                         for (int i = 0; i < size; ++i) {
                             bitStr += MmsValue_getBitStringBit(value, i) ? '1' : '0';
                         }
+                        redisClient.storeString(node.path, bitStr);
                         LOG(info) << "Node: " << node.path << " is bit string: " << bitStr;
                         break;
                     }
 
                     case MMS_UTC_TIME: {
-                        uint32_t timestamp = MmsValue_toUnixTimestamp(value); // 通常是 ms
-                        std::time_t time = timestamp / 1000;
+                        uint64_t msTimestamp = MmsValue_getUtcTimeInMs(value); // 单位是毫秒
+                        std::time_t seconds = msTimestamp / 1000;
+                        int milliseconds = msTimestamp % 1000;
+
                         char buf[64];
-                        std::strftime(buf, sizeof(buf), "%F %T", std::localtime(&time));
-                        LOG(info) << "Node: " << node.path << " is binary time: " << buf << " ("
-                                  << timestamp << " ms)";
+                        std::strftime(buf, sizeof(buf), "%F %T", std::localtime(&seconds));
+                        LOG(info) << "Node: " << node.path << " is UTC time: " << buf << "."
+                                  << milliseconds << " (" << msTimestamp << " ms)";
+                        redisClient.storeLInt(node.path, msTimestamp);
                         break;
                     }
 
                     case MMS_STRUCTURE: {
-                        parseStructure(value, node.path);
+                        parseStructure(redisClient, value, node.path);
                         break;
                     }
 
                     default:
-                        LOG(info) << "Node: " << node.path << " has an unsupported type: " << type;
+                        LOG(warning)
+                            << "Node: " << node.path << " has an unsupported type: " << type;
                         break;
                 }
             } else {
@@ -170,23 +185,18 @@ void iec61850ClientManger::readAllValues(const std::vector<DataNode> &nodes)
                 std::string valueStr = value ? MmsValue_toString(value) : "nullptr";
                 LOG(error) << "Failed to read " << node.path << ": "
                            << IedClientError_toString(error) << ", value: " << valueStr;
-                if (value) {
-                    MmsValue_delete(value);
-                }
-                // 读取失败时等待
-                std::this_thread::sleep_for(std::chrono::milliseconds(200));
-                continue;
             }
             // 统一释放 value
             if (value) {
                 MmsValue_delete(value);
+                value = nullptr;
             }
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(1000)); // 每秒读取一次
     }
 }
 
-void iec61850ClientManger::parseStructure(
+void iec61850ClientManger::parseStructure(DRDSDataRedis &redisClient,
     MmsValue *value, const std::string &nodePath, MmsVariableSpecification *varSpec,
     int indentLevel, const std::string &targetPath)
 {
@@ -197,38 +207,50 @@ void iec61850ClientManger::parseStructure(
 
     std::string indent(indentLevel * 2, ' '); // 用于日志缩进
 
+    // 限制递归深度，防止栈溢出
+    if (indentLevel > 10) {
+        LOG(error) << indent << "Max recursion depth exceeded at: " << nodePath;
+        return;
+    }
     // 如果指定了目标路径，使用 MmsValue_getSubElement
     if (!targetPath.empty() && varSpec) {
+
         MmsValue *subValue =
             MmsValue_getSubElement(value, varSpec, const_cast<char *>(targetPath.c_str()));
+
         if (subValue) {
             std::string subPath = nodePath + "." + targetPath;
             MmsType subType = MmsValue_getType(subValue);
             switch (subType) {
                 case MMS_BOOLEAN: {
                     bool val = MmsValue_getBoolean(subValue);
+                    redisClient.storeBool(subPath, val);
                     LOG(info) << indent << "Node: " << subPath
                               << " is: " << (val ? "true" : "false");
                     break;
                 }
                 case MMS_INTEGER: {
                     int64_t val = MmsValue_toInt64(subValue);
+                    redisClient.storeLInt(subPath, val);
                     LOG(info) << indent << "Node: " << subPath << " is: " << val;
                     break;
                 }
                 case MMS_UNSIGNED: {
                     uint64_t val = MmsValue_toInt64(subValue);
+                    redisClient.storeULInt(subPath, val);
                     LOG(info) << indent << "Node: " << subPath << " is: " << val;
                     break;
                 }
                 case MMS_FLOAT: {
                     double val = MmsValue_toDouble(subValue);
+                    redisClient.storeLReal(subPath, val);
                     LOG(info) << indent << "Node: " << subPath << " is: " << val;
                     break;
                 }
                 case MMS_STRING:
                 case MMS_VISIBLE_STRING: {
                     const char *str = MmsValue_toString(subValue);
+                    redisClient.storeString(subPath, str ? str : "");
                     LOG(info) << indent << "Node: " << subPath
                               << " is: " << (str ? str : "empty string");
                     break;
@@ -236,24 +258,29 @@ void iec61850ClientManger::parseStructure(
                 case MMS_BIT_STRING: {
                     int size = MmsValue_getBitStringSize(subValue);
                     std::string bitStr;
+                    bitStr.reserve(size); // 预分配空间以提高性能
                     for (int j = 0; j < size; ++j) {
                         bitStr += MmsValue_getBitStringBit(subValue, j) ? '1' : '0';
                     }
+                    redisClient.storeString(subPath, bitStr);
                     LOG(info) << indent << "Node: " << subPath << " is bit string: " << bitStr;
                     break;
                 }
                 case MMS_UTC_TIME: {
-                    uint32_t timestamp = MmsValue_toUnixTimestamp(subValue);
-                    std::time_t time = timestamp / 1000;
+                    uint64_t msTimestamp = MmsValue_getUtcTimeInMs(value); // 单位是毫秒
+                    redisClient.storeLInt(subPath, msTimestamp);
+                    std::time_t seconds = msTimestamp / 1000;
+                    int milliseconds = msTimestamp % 1000;
+
                     char buf[64];
-                    std::strftime(buf, sizeof(buf), "%F %T", std::localtime(&time));
-                    LOG(info) << indent << "Node: " << subPath << " is binary time: " << buf << " ("
-                              << timestamp << " ms)";
+                    std::strftime(buf, sizeof(buf), "%F %T", std::localtime(&seconds));
+                    LOG(info) << "Node: " << subPath << " is UTC time: " << buf << "."
+                              << milliseconds << " (" << msTimestamp << " ms)";
                     break;
                 }
                 case MMS_STRUCTURE: {
                     LOG(info) << indent << "Node: " << subPath << " is a structure";
-                    parseStructure(subValue, subPath, nullptr, indentLevel + 1); // 递归解析子结构体
+                    parseStructure(redisClient, subValue, subPath, nullptr, indentLevel + 1); // 递归解析子结构体
                     break;
                 }
                 default:
@@ -261,7 +288,10 @@ void iec61850ClientManger::parseStructure(
                               << " has an unsupported type: " << subType;
                     break;
             }
-            MmsValue_delete(subValue);
+            if (subValue) {
+                MmsValue_delete(subValue);
+            }
+
         } else {
             LOG(error) << indent << "Failed to get sub-element: " << targetPath
                        << " for node: " << nodePath;
@@ -271,6 +301,7 @@ void iec61850ClientManger::parseStructure(
 
     // 遍历所有子元素
     int numSubValues = MmsValue_getArraySize(value);
+
     for (int i = 0; i < numSubValues; ++i) {
         MmsValue *subValue = MmsValue_getElement(value, i);
         if (!subValue) {
@@ -317,17 +348,19 @@ void iec61850ClientManger::parseStructure(
                 break;
             }
             case MMS_UTC_TIME: {
-                uint32_t timestamp = MmsValue_toUnixTimestamp(subValue);
-                std::time_t time = timestamp / 1000;
+                uint64_t msTimestamp = MmsValue_getUtcTimeInMs(value); // 单位是毫秒
+                std::time_t seconds = msTimestamp / 1000;
+                int milliseconds = msTimestamp % 1000;
+
                 char buf[64];
-                std::strftime(buf, sizeof(buf), "%F %T", std::localtime(&time));
-                LOG(info) << indent << "Node: " << subPath << " is binary time: " << buf << " ("
-                          << timestamp << " ms)";
+                std::strftime(buf, sizeof(buf), "%F %T", std::localtime(&seconds));
+                LOG(info) << "Node: " << subPath << " is UTC time: " << buf << "." << milliseconds
+                          << " (" << msTimestamp << " ms)";
                 break;
             }
             case MMS_STRUCTURE: {
                 LOG(info) << indent << "Node: " << subPath << " is a structure";
-                parseStructure(subValue, subPath, nullptr, indentLevel + 1);
+                parseStructure(redisClient, subValue, subPath, nullptr, indentLevel + 1);
                 break;
             }
             default:
@@ -335,10 +368,12 @@ void iec61850ClientManger::parseStructure(
                           << " has an unsupported type: " << subType;
                 break;
         }
-        MmsValue_delete(subValue);
+        // if (subValue) {
+        //     MmsValue_delete(subValue);
+        //     printf("eeeeee++++++++++++++++++++%d\n", MmsValue_getType(value));
+        // }
     }
 }
-
 
 void iec61850ClientManger::controlObjects(const std::vector<std::string> &nodes, std::string ctlVal)
 {
