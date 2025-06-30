@@ -14,17 +14,17 @@
  * </table>
  */
 
-#include "iec61850ClientManger.h"
+#include "iec61850Client.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <thread>
 #include "log/logger.h"
 
-iec61850ClientManger::~iec61850ClientManger()
+iec61850Client::~iec61850Client()
 {
 }
 
-void iec61850ClientManger::init(const char *configFilePath)
+void iec61850Client::init(const char *configFilePath)
 {
     IcdParser parser;
     auto nodes = parser.parse(configFilePath);
@@ -47,12 +47,12 @@ void iec61850ClientManger::init(const char *configFilePath)
     // }
 }
 
-iec61850ClientManger::iec61850ClientManger(std::string ip, uint16_t port)
+iec61850Client::iec61850Client(std::string ip, uint16_t port)
     : ip_(std::move(ip)), port_(port), con_(IedConnection_create()), running_(true)
 {
 }
 
-bool iec61850ClientManger::connect()
+bool iec61850Client::connect()
 {
     IedConnection_connect(con_, &error_, ip_.c_str(), port_);
     if (error_ != IED_ERROR_OK) {
@@ -62,13 +62,13 @@ bool iec61850ClientManger::connect()
     return true;
 }
 
-void iec61850ClientManger::disconnect()
+void iec61850Client::disconnect()
 {
     IedConnection_close(con_);
     IedConnection_destroy(con_);
 }
 
-void iec61850ClientManger::readAllValues(const std::vector<DataNode> &nodes)
+void iec61850Client::readAllValues(const std::vector<DataNode> &nodes)
 {
 
     DRDSDataRedis redisClient;
@@ -196,7 +196,7 @@ void iec61850ClientManger::readAllValues(const std::vector<DataNode> &nodes)
     }
 }
 
-void iec61850ClientManger::parseStructure(DRDSDataRedis &redisClient,
+void iec61850Client::parseStructure(DRDSDataRedis &redisClient,
     MmsValue *value, const std::string &nodePath, MmsVariableSpecification *varSpec,
     int indentLevel, const std::string &targetPath)
 {
@@ -375,7 +375,7 @@ void iec61850ClientManger::parseStructure(DRDSDataRedis &redisClient,
     }
 }
 
-void iec61850ClientManger::controlObjects(const std::vector<std::string> &nodes, std::string ctlVal)
+void iec61850Client::controlObjects(const std::vector<std::string> &nodes, std::string ctlVal)
 {
     IedClientError error;
     for (const auto &node : nodes) {
@@ -423,7 +423,7 @@ void iec61850ClientManger::controlObjects(const std::vector<std::string> &nodes,
     }
 }
 
-void iec61850ClientManger::subscribeToReports(const std::vector<DataNode> &nodes)
+void iec61850Client::subscribeToReports(const std::vector<DataNode> &nodes)
 {
     LOG(info) << "\nSubscribing to reports:" << std::endl;
     IedClientError error;
@@ -456,3 +456,4 @@ void iec61850ClientManger::subscribeToReports(const std::vector<DataNode> &nodes
         // ClientReportControlBlock_destroy(rcb);
     }
 }
+
