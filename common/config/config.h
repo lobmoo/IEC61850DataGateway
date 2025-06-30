@@ -196,19 +196,110 @@ struct ConfigDataIEC61850 {
 };
 
 struct ConfigDataIEC104 {
+    struct TCP {
+        std::string ip;
+        int port;
+    };
+
+    struct LocalAddress {
+        std::string ip;
+        int port;
+    };
+
+    struct APCI {
+        int t0;
+        int t1;
+        int t2;
+        int t3;
+        int k;
+        int w;
+    };
+
+    struct ApplicationLayer {
+        int originator_address;
+        int common_address;
+        int asdu_size;
+    };
+
+    struct Protocol {
+        APCI apci;
+        ApplicationLayer application_layer;
+    };
+
+    struct Report {
+        int ioa;
+        std::string report_id;
+    };
+
+    struct Communication {
+        int gi_interval_ms;
+        bool report_enabled;
+        std::vector<Report> reports;
+    };
+
+    struct ErrorHandling {
+        int reconnect_interval_ms;
+        int max_reconnect_attempts;
+    };
+
+    struct DataPoint {
+        int ioa;
+        std::string type;
+        std::string description;
+        std::string iec61850_path;
+    };
+
     std::string device_id;
-    std::string ip;
-    int port;
-    int asdu_address;
-    int ioa_address;
+    std::string type;  // TCP or other
+    TCP tcp;
+    LocalAddress local_address;
+    Protocol protocol;
+    Communication communication;
+    ErrorHandling error_handling;
+    std::vector<DataPoint> data_points;
 
     void to_string() const
     {
         LOG(info) << "device_id: " << device_id;
-        LOG(info) << "ip: " << ip;
-        LOG(info) << "port: " << port;
-        LOG(info) << "asdu_address: " << asdu_address;
-        LOG(info) << "ioa_address: " << ioa_address;
+        LOG(info) << "type: " << type;
+
+        LOG(info) << "tcp.ip: " << tcp.ip;
+        LOG(info) << "tcp.port: " << tcp.port;
+
+        LOG(info) << "local_address.ip: " << local_address.ip;
+        LOG(info) << "local_address.port: " << local_address.port;
+
+        LOG(info) << "protocol.apci.t0: " << protocol.apci.t0;
+        LOG(info) << "protocol.apci.t1: " << protocol.apci.t1;
+        LOG(info) << "protocol.apci.t2: " << protocol.apci.t2;
+        LOG(info) << "protocol.apci.t3: " << protocol.apci.t3;
+        LOG(info) << "protocol.apci.k: " << protocol.apci.k;
+        LOG(info) << "protocol.apci.w: " << protocol.apci.w;
+
+        LOG(info) << "protocol.application_layer.originator_address: " << protocol.application_layer.originator_address;
+        LOG(info) << "protocol.application_layer.common_address: " << protocol.application_layer.common_address;
+        LOG(info) << "protocol.application_layer.asdu_size: " << protocol.application_layer.asdu_size;
+
+        LOG(info) << "communication.gi_interval_ms: " << communication.gi_interval_ms;
+        LOG(info) << "communication.report_enabled: " << (communication.report_enabled ? "true" : "false");
+
+        for (size_t i = 0; i < communication.reports.size(); ++i) {
+            const auto& r = communication.reports[i];
+            LOG(info) << "communication.reports[" << i << "].ioa: " << r.ioa;
+            LOG(info) << "communication.reports[" << i << "].report_id: " << r.report_id;
+        }
+
+        LOG(info) << "error_handling.reconnect_interval_ms: " << error_handling.reconnect_interval_ms;
+        LOG(info) << "error_handling.max_reconnect_attempts: " << error_handling.max_reconnect_attempts;
+
+        for (size_t i = 0; i < data_points.size(); ++i) {
+            const auto& d = data_points[i];
+            LOG(info) << "data_points[" << i << "].ioa: " << d.ioa;
+            LOG(info) << "data_points[" << i << "].type: " << d.type;
+            LOG(info) << "data_points[" << i << "].description: " << d.description;
+            LOG(info) << "data_points[" << i << "].iec61850_path: " << d.iec61850_path;
+            LOG(info) << "\n------------------------\n";
+        }
     }
 };
 

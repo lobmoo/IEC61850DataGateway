@@ -62,3 +62,47 @@ IEC61850Devices:
     description: "none"
     data_point_filters:
       - "LD_Motor/MHAI1.Amp.mag.f"
+
+
+IEC104Devices:
+  - device_id: "iec104_device_1"
+    type: "TCP"
+    TCP:
+      ip: "127.0.0.1"          # 服务器IP地址
+      port: 2404               # 服务器端口（默认2404）
+    local_address:
+      ip: ""                   # 本地IP地址（空表示不绑定）
+      port: -1                 # 本地端口（-1表示随机）
+    protocol:
+      apci:
+        t0: 5                  # 连接超时时间（秒）
+        t1: 20                 # 发送/测试APDU超时（秒）
+        t2: 15                 # 无数据时S帧超时（秒）
+        t3: 30                 # 无数据时测试帧超时（秒）
+        k: 10                  # 最大未确认帧数
+        w: 6                   # 接收帧后确认的最大帧数
+      application_layer:
+        originator_address: 3  # 发起地址
+        common_address: 1       # 公共地址（站地址）
+        asdu_size: 247         # 最大ASDU长度（字节）
+    communication:
+      gi_interval_ms: 1000     # 总查询间隔（毫秒，1秒以提高实时性）
+      report_enabled: true     # 是否启用报告机制
+      reports:
+        - ioa: 1002           # 示例：订阅GGIO1.SPCSO1.Oper的IOA
+          report_id: "BufferedReport1"  # 报告控制块ID
+        - ioa: 1003
+          report_id: "BufferedReport2"
+    error_handling:
+      reconnect_interval_ms: 5000  # 重连间隔（毫秒）
+      max_reconnect_attempts: 3    # 最大重连尝试次数
+
+    data_points:                 # 可选：指定特定数据点
+      - ioa: 1002
+        type: "M_SP_NA_1"        # 单点信息
+        description: "Switch Status"
+        iec61850_path: "beagleGenericIO/GGIO1.SPCSO1.Oper"  # IEC 61850路径
+      - ioa: 1003
+        type: "C_SC_NA_1"        # 单点控制命令
+        description: "Switch Control"
+        iec61850_path: "beagleGenericIO/GGIO1.SPCSO1.Oper"

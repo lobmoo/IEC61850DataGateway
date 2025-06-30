@@ -60,9 +60,9 @@ void Config::loadConfig(const std::string &filename)
     if (!parse61850Config(config)) {
         LOG(error) << "Failed to parse IEC61850 config";
     }
-    // if (!parse104Config(config)) {
-    //     LOG(error) << "Failed to parse 104 config";
-    // }
+    if (!parse104Config(config)) {
+        LOG(error) << "Failed to parse 104 config";
+    }
 }
 
 const ConfigData *Config::getConfig()
@@ -95,7 +95,7 @@ bool Config::parse61850Config(const YAML::Node& config)
         iec.logical_device   = node["logical_device"].as<std::string>();
         iec.client_mms_name  = node["client_mms_name"].as<std::string>();
 
-        // 非必填项，允许缺失但不能为空
+        // Todo: 非必填项，允许缺失但不能为空
         if (node["port"].IsNull()) return false;
         iec.port = node["port"].as<int>();
 
@@ -139,8 +139,104 @@ bool Config::parse61850Config(const YAML::Node& config)
     return true;
 }
 
-bool Config::parse104Config(const YAML::Node &config)
+bool Config::parse104Config(const YAML::Node& config)
 {
+    const YAML::Node& devicesNode = config["IEC104Devices"];
+    // 空配置是合法的
+    if (!devicesNode) {
+        LOG(warning) << "IEC104Devices config not found";
+        return true;  
+    }
+
+    if (!devicesNode.IsSequence()) {
+        LOG(error) << "IEC104Devices should be a sequence.";
+        return false;
+    }
+
+    for (const auto& node : devicesNode) {
+        ConfigDataIEC104 iec;
+
+        // 必填项（不为空）
+        iec.device_id = node["device_id"].as<std::string>();
+        iec.type      = node["type"].as<std::string>();
+        LOG(info) << "Parsing IEC104 Device: " << iec.device_id;
+
+        // TCP部分
+        const auto& tcp_node = node["TCP"];
+        iec.tcp.ip = tcp_node["ip"].as<std::string>();
+        iec.tcp.port = tcp_node["port"].as<int>();
+
+        // local_address
+        const auto& local_node = node["local_address"];
+        if (local_node["ip"].IsNull() || !local_node["ip"].IsScalar()) return false;
+        iec.local_address.ip = local_node["ip"].as<std::string>();
+
+        if (local_node["port"].IsNull()) return false;
+        iec.local_address.port = local_node["port"].as<int>();
+
+        // protocol.apci
+        const auto& apci_node = node["protocol"]["apci"];
+        iec.protocol.apci.t0 = apci_node["t0"].as<int>();
+        iec.protocol.apci.t1 = apci_node["t1"].as<int>();
+        iec.protocol.apci.t2 = apci_node["t2"].as<int>();
+        iec.protocol.apci.t3 = apci_node["t3"].as<int>();
+        iec.protocol.apci.k  = apci_node["k"].as<int>();
+        iec.protocol.apci.w  = apci_node["w"].as<int>();
+
+        // protocol.application_layer
+        const auto& app_node = node["protocol"]["application_layer"];
+        iec.protocol.application_layer.originator_address = app_node["originator_address"].as<int>();
+        iec.protocol.application_layer.common_address     = app_node["common_address"].as<int>();
+        iec.protocol.application_layer.asdu_size          = app_node["asdu_size"].as<int>();
+
+        // communication
+        const auto& comm_node = node["communication"];
+        iec.communication.gi_interval_ms = comm_node["gi_interval_ms"].as<int>();
+        iec.communication.report_enabled = comm_node["report_enabled"].as<bool>();
+
+        // communication.reports
+        if (comm_node["reports"].IsNull() || !comm_node["reports"].IsSequence()) {
+            return false;
+        }
+
+        for (const auto& report_node : comm_node["reports"]) {
+            ConfigDataIEC104::Report report;
+            report.ioa = report_node["ioa"].as<int>();
+            if (report_node["report_id"].IsNull() || report_node["report_id"].as<std::string>().empty()) {
+                return false;
+            }
+            report.report_id = report_node["report_id"].as<std::string>();
+            iec.communication.reports.emplace_back(report);
+        }
+
+        // error_handling
+        const auto& err_node = node["error_handling"];
+        iec.error_handling.reconnect_interval_ms = err_node["reconnect_interval_ms"].as<int>();
+        iec.error_handling.max_reconnect_attempts = err_node["max_reconnect_attempts"].as<int>();
+
+        // data_points
+        if (node["data_points"] && node["data_points"].IsSequence()) {
+            for (const auto& dp_node : node["data_points"]) {
+                ConfigDataIEC104::DataPoint dp;
+                dp.ioa = dp_node["ioa"].as<int>();
+                dp.type = dp_node["type"].as<std::string>();
+                if (dp_node["description"].IsNull() || dp_node["description"].as<std::string>().empty()) {
+                    return false;
+                }
+                dp.description = dp_node["description"].as<std::string>();
+
+                if (dp_node["iec61850_path"].IsNull() || dp_node["iec61850_path"].as<std::string>().empty()) {
+                    return false;
+                }
+                dp.iec61850_path = dp_node["iec61850_path"].as<std::string>();
+
+                iec.data_points.emplace_back(dp);
+            }
+        }
+
+        data->iec104[iec.device_id] = iec;
+    }
+
     return true;
 }
 
