@@ -24,7 +24,7 @@
 #include "log/logger.h"
 #include "config/config.h"
 #include "redis-api/app_redis.h"
-#include "iec61850/iec61850Client.h"
+#include "iec61850/iec61850ClientManger.h"
 #include "iec61850/ice61850Service.h"
 
 const std::string daemon_ = R"(
@@ -83,8 +83,8 @@ int main()
     // appModbus.run();
 
     /*初始化61850 Client*/
-    iec61850Client iec61850Client("127.0.0.1", 102);
-    iec61850Client.init("/home/wwk/workspaces/IEC61850DataGateway/core/TEMPLATE.icd");
+    iec61850ClientManger iec61850ClientManager;
+    iec61850ClientManager.initClients();
 
     // ice61850Service appIec61850Service;
     // if(!appIec61850Service.init("eth0")) {

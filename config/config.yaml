@@ -2,7 +2,7 @@ ModbusDevices:
   - device_id: "modbus_1"
     type: "TCP"
     TCP:
-      ip: "192.168.1.10"
+      ip: "127.0.0.1"
       port: 502
     RTU:
       port_name: "/dev/ttyUSB0"
@@ -29,9 +29,9 @@ ModbusDevices:
 
 IEC61850Devices:
   - device_id: "iec1"
-    ip: "192.168.1.20"
+    ip: "127.0.0.1"
     port: 102
-    icd_file: "/path/to/your1.icd"
+    icd_file: "/home/wwk/workspaces/IEC61850DataGateway/core/TEMPLATE.icd"
     access_point: "P1"
     logical_device: "LD0"
     poll_interval: 2000
