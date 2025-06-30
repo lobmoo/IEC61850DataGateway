@@ -67,7 +67,7 @@ int main()
 
     // ptr.getConfig()->getModbus()->to_string();
     /*初始化redis*/
-    DRDSDataRedis::setDefaultConnectionInfo("", "127.0.0.1", 6379);
+    DRDSDataRedis::setDefaultConnectionInfo("", "127.0.0.1", 6380);
 
     // /*初始化modbus*/
     // AppModbus appModbus;
