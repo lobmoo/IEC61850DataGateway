@@ -1,5 +1,5 @@
 #include "iec104Client.h"
-#include <iostream>
+#include "log/logger.h"
 
 
 IEC104Client::IEC104Client(const std::string& server_ip, uint16_t server_port,
@@ -15,7 +15,6 @@ IEC104Client::IEC104Client(const std::string& server_ip, uint16_t server_port,
     if (!connection_) {
         throw std::runtime_error("Failed to create CS104_Connection");
     }
-
     // 设置APCI参数
     CS104_APCIParameters apci_params = CS104_Connection_getAPCIParameters(connection_);
     apci_params->t0 = t0_;
@@ -47,7 +46,7 @@ IEC104Client::~IEC104Client()
 bool IEC104Client::start()
 {
     if (running_) {
-        std::cout << "Client is already running" << std::endl;
+        LOG(error) << "Client is already running";
         return false;
     }
 

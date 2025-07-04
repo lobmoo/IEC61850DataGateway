@@ -2,6 +2,7 @@
 #include <iostream>
 #include <iomanip>
 #include <chrono>
+#include "log/logger.h"
 
 IEC104Server::IEC104Server(const ServerConfig &config)
     : config_(config), slave_(nullptr), running_(false), periodicIntervalMs_(1000),
@@ -101,8 +102,7 @@ bool IEC104Server::start()
     }
     Thread_start(periodicThread_);
 
-    std::cout << "IEC104 server started on " << config_.localAddress << ":" << config_.port
-              << std::endl;
+    LOG(info) << "IEC104 server started on " << config_.localAddress << ":" << config_.port;
     return true;
 }
 
@@ -118,7 +118,7 @@ void IEC104Server::stop()
     }
 
     CS104_Slave_stop(slave_);
-    std::cout << "IEC104 server stopped" << std::endl;
+    LOG(info) << "IEC104 server stopped";
 }
 
 void IEC104Server::periodicSendTask()
@@ -176,12 +176,11 @@ bool IEC104Server::clockSyncHandler(
     void *parameter, IMasterConnection connection, CS101_ASDU asdu, CP56Time2a newTime)
 {
     auto server = static_cast<IEC104Server *>(parameter);
-    std::cout << "Received clock sync command with time: " << std::setfill('0') << std::setw(2)
+    LOG(info)<< "Received clock sync command with time: " << std::setfill('0') << std::setw(2)
               << CP56Time2a_getHour(newTime) << ":" << std::setw(2) << CP56Time2a_getMinute(newTime)
               << ":" << std::setw(2) << CP56Time2a_getSecond(newTime) << " " << std::setw(2)
               << CP56Time2a_getDayOfMonth(newTime) << "/" << std::setw(2)
-              << CP56Time2a_getMonth(newTime) << "/" << (CP56Time2a_getYear(newTime) + 2000)
-              << std::endl;
+              << CP56Time2a_getMonth(newTime) << "/" << (CP56Time2a_getYear(newTime) + 2000);
 
     CP56Time2a_setFromMsTimestamp(newTime, Hal_getTimeInMs());
     return true;
@@ -191,7 +190,7 @@ bool IEC104Server::interrogationHandler(
     void *parameter, IMasterConnection connection, CS101_ASDU asdu, uint8_t qoi)
 {
     auto server = static_cast<IEC104Server *>(parameter);
-    std::cout << "Received interrogation for group " << static_cast<int>(qoi) << std::endl;
+    LOG(info) << "Received interrogation for group " << static_cast<int>(qoi);
 
     if (qoi == 20) { // 站总召唤
         IMasterConnection_sendACT_CON(connection, asdu, false);
@@ -214,14 +213,13 @@ bool IEC104Server::asduHandler(void *parameter, IMasterConnection connection, CS
 {
     auto server = static_cast<IEC104Server *>(parameter);
     if (CS101_ASDU_getTypeID(asdu) == C_SC_NA_1) {
-        std::cout << "Received single command" << std::endl;
+        LOG(info) << "Received single command";
         if (CS101_ASDU_getCOT(asdu) == CS101_COT_ACTIVATION) {
             InformationObject io = CS101_ASDU_getElement(asdu, 0);
             if (io) {
                 int ioa = InformationObject_getObjectAddress(io);
                 SingleCommand sc = (SingleCommand)io;
-                std::cout << "IOA: " << ioa << " switch to " << SingleCommand_getState(sc)
-                          << std::endl;
+                LOG(info) << "IOA: " << ioa << " switch to " << SingleCommand_getState(sc);
                 {
                     std::lock_guard<std::mutex> lock(server->dataPointsMutex_);
                     auto it = server->dataPoints_.find(ioa);
@@ -247,7 +245,7 @@ bool IEC104Server::asduHandler(void *parameter, IMasterConnection connection, CS
 
 bool IEC104Server::connectionRequestHandler(void *parameter, const char *ipAddress)
 {
-    std::cout << "New connection request from " << ipAddress << std::endl;
+    LOG(info) << "New connection request from " << ipAddress;
     return true;
 }
 
@@ -269,13 +267,13 @@ void IEC104Server::connectionEventHandler(
             eventStr = "deactivated";
             break;
     }
-    std::cout << "Connection " << eventStr << " (" << con << ")" << std::endl;
+    LOG(info) << "Connection " << eventStr << " (" << con << ")";
 }
 
 void IEC104Server::rawMessageHandler(
     void *parameter, IMasterConnection connection, uint8_t *msg, int msgSize, bool sent)
 {
-    std::cout << (sent ? "SEND: " : "RCVD: ");
+    LOG(info) << (sent ? "SEND: " : "RCVD: ");
     for (int i = 0; i < msgSize; ++i) {
         std::cout << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(msg[i])
                   << " ";
@@ -283,34 +281,31 @@ void IEC104Server::rawMessageHandler(
     std::cout << std::dec << std::endl;
 }
 
-/*std::atomic<bool> running(true);
+std::atomic<bool> running(true);
 
 void signalHandler(int signal)
 {
     running = false;
 }
 
-int main()
+int server104Test()
 {
-    // 注册信号处理
-    std::signal(SIGINT, signalHandler);
-
     // 配置104服务
-    IEC104::ServerConfig config;
+    ServerConfig config;
     config.localAddress = "0.0.0.0";
     config.port = 2404;
     config.maxConnections = 5;
     config.maxQueueSize = 5;
 
     // 创建服务实例
-    IEC104::IEC104Server server(config);
+    IEC104Server server(config);
     server.setPeriodicSendInterval(2000); // 每2秒发送一次
 
     // 添加测试数据点
-    server.addDataPoint(100, IEC104::DataPointType::MEASURED_VALUE_SCALED, 1000, IEC60870_QUALITY_GOOD);
-    server.addDataPoint(101, IEC104::DataPointType::MEASURED_VALUE_SCALED, 2000, IEC60870_QUALITY_GOOD);
-    server.addDataPoint(200, IEC104::DataPointType::SINGLE_POINT, true, IEC60870_QUALITY_GOOD);
-    server.addDataPoint(201, IEC104::DataPointType::SINGLE_POINT, false, IEC60870_QUALITY_GOOD);
+    server.addDataPoint(100, DataPointType::MEASURED_VALUE_SCALED, static_cast<int16_t>(1000), IEC60870_QUALITY_GOOD);
+    server.addDataPoint(101, DataPointType::MEASURED_VALUE_SCALED, static_cast<int16_t>(2000), IEC60870_QUALITY_GOOD);
+    server.addDataPoint(200, DataPointType::SINGLE_POINT, true, IEC60870_QUALITY_GOOD);
+    server.addDataPoint(201, DataPointType::SINGLE_POINT, false, IEC60870_QUALITY_GOOD);
 
     // 启动服务
     if (!server.start()) {
@@ -322,12 +317,11 @@ int main()
     int16_t value = 1000;
     while (running) {
         server.updateDataPoint(100, value++);
-        server.updateDataPoint(101, value + 1000);
+        server.updateDataPoint(101, static_cast<int16_t>(value + 1000));
         server.updateDataPoint(200, value % 2 == 0);
         Thread_sleep(1000);
     }
 
-    // 停止服务
     server.stop();
     return 0;
-}*/
+}

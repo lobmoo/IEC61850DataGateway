@@ -31,9 +31,11 @@ struct ServerConfig {
     int maxQueueSize = 10;
 };
 
+int server104Test();
 class IEC104Server
 {
 public:
+    
     explicit IEC104Server(const ServerConfig &config);
     ~IEC104Server();
 
