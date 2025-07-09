@@ -56,7 +56,7 @@ const std::string daemon_ = R"(
 
 int main()
 {
-    std::cout << daemon_ << std::endl;
+    //std::cout << daemon_ << std::endl;
     Logger::Instance().setFlushOnLevel(Logger::info);
     Logger::Instance().Init("log/myapp.log", Logger::console, Logger::info, 60, 5);
 
@@ -101,7 +101,7 @@ int main()
     /*初始化104服务端*/
     std::thread([](){server104Test();}).detach();
 
-
+    sleep(1); // 等待104服务端启动
     testFunction();
     while (std::cin.get() != '\n') {
     }

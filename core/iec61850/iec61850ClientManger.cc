@@ -36,3 +36,13 @@ void iec61850ClientManger::initClients()
         }
     }
 }
+
+iec61850ClientManger::~iec61850ClientManger()
+{
+    for (const auto &client : clients_) {
+        client->disconnect();
+    }
+    clients_.clear();
+
+    LOG(info) << "IEC 61850 Client Manager destroyed, all clients disconnected.";
+}

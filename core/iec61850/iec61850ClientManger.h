@@ -8,7 +8,7 @@
 class iec61850ClientManger {
 public:
     iec61850ClientManger() = default;
-    ~iec61850ClientManger() =  default;
+    ~iec61850ClientManger();
 
     void addClient(const std::shared_ptr<iec61850Client> &client);
     void removeClient(const std::shared_ptr<iec61850Client> &client);
